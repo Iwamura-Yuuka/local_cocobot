@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- config file path  -->
+    <!-- <arg name="rviz_settings" default="$(find cost_map_creator)/config/rviz/cost_map_creator_with_debag.rviz"/> -->
+    <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator.yaml"/>
+
+    <!-- node launch -->
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_settings)"/> -->
+    <node pkg="cost_map_creator" type="cost_map_creator_node" name="cost_map_creator" output="screen">
+        <rosparam command="load" file="$(arg cost_map_creator_settings)"/>
+    </node>
+    
+    <!-- Simulator -->
+    <!-- <include file="$(find SPACiSS)experimental_package/launch/human_data_only.launch"/> -->
+
+    <!-- rviz -->
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_settings)"/> -->
+</launch>
