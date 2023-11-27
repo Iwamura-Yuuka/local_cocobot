@@ -10,6 +10,7 @@
 
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
+#include <pedestrian_msgs/PersonState.h>
 
 class CostMapCreator
 {
@@ -24,6 +25,7 @@ private:
     // 引数あり関数
 
     // 引数なし関数
+    void id_veiwer();
 
     // yamlファイルで設定可能な変数
     int hz_;
@@ -31,7 +33,7 @@ private:
     double local_map_resolution_;
 
     // その他の変数
-    
+    // int current_id = 1000;
     
     // msgの受け取り判定用
     bool flag_ped_states_ = false;
@@ -47,6 +49,8 @@ private:
     // ros::Publisher pub_local_map_;
 
     std::queue<pedsim_msgs::AgentStatesConstPtr> ped_states_;  // 歩行者情報
+    pedestrian_msgs::PersonState current_state_;
+    // pedsim_msgs::AgentStateConstPtr person_;
     // nav_msgs::OccupancyGrid local_map_;
     // geometry_msgs::PoseArray obs_poses_;
 

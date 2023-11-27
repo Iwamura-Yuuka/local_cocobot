@@ -14,6 +14,7 @@ tf
 tf2
 
 pedsim_msgs
+pedestrian_msgs
 )
 
 ###################################
