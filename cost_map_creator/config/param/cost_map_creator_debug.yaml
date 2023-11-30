@@ -1,6 +1,7 @@
 # デバック用
 
 # デバック用の情報を可視化するかの設定用
+# trueなら可視化
 visualize_current_people_poses: true  # 歩行者の現在位置
 
 # 制御周波数[Hz]

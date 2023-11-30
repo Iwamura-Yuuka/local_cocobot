@@ -24,7 +24,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
 void CostMapCreator::pedestrian_data_callback(const pedsim_msgs::AgentStatesConstPtr& agents)
 {
     ped_states_.emplace(agents);
-    // ROS_INFO_STREAM("id[1]'s x is " << agents->agent_states[1].pose.position.x);  // デバック用
     flag_ped_states_ = true;
 }
 
@@ -32,17 +31,16 @@ void CostMapCreator::pedestrian_data_callback(const pedsim_msgs::AgentStatesCons
 void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
     robot_odom_ = *msg;
-    // ROS_INFO_STREAM("robot x is " << robot_odom_.pose.pose.position.x);  // デバック用
     flag_robot_odom_ = true;
 }
 
 // 歩行者データを取得
-void CostMapCreator::id_veiwer()
+void CostMapCreator::get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now)
 {
     pedestrian_msgs::PersonState current_person;
-    pedestrian_msgs::PeopleStates current_people;
-    current_people.header.stamp  = ros::Time::now();
-    current_people.header.frame_id  = "odom";
+
+    current_people.header.stamp  = now;
+    current_people.header.frame_id  = people_frame_;
     
     // ped_states_の配列のうち，1回のpublish分のデータ（配列の先頭の要素）のみ取得
     const auto people_states = ped_states_.front();
@@ -60,11 +58,19 @@ void CostMapCreator::id_veiwer()
     }
 
     pub_current_people_states_.publish(current_people);
+}
+
+void CostMapCreator::create_cost_map()
+{
+    pedestrian_msgs::PeopleStates current_people;
+    ros::Time now = ros::Time::now();
+
+    // 歩行者データを取得
+    get_ped_data(current_people, now);
 
     // 歩行者の現在位置の可視化
     if(visualize_current_people_poses_)
     {
-        ros::Time now = ros::Time::now();
         visualize_people_pose(current_people, pub_current_ped_poses_, now);
     }
 
@@ -103,7 +109,7 @@ void CostMapCreator::process()
         if((flag_ped_states_ == true) && (flag_robot_odom_ == true))
         {
             ROS_INFO_STREAM("get ped_states!");  // デバック用
-            id_veiwer();
+            create_cost_map();
         }
 
         ros::spinOnce();

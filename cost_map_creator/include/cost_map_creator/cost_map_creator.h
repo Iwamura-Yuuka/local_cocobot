@@ -26,10 +26,11 @@ private:
     void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     // 引数あり関数
+    void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
     void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
-    void id_veiwer();
+    void create_cost_map();
 
     // yamlファイルで設定可能な変数
     int hz_;
