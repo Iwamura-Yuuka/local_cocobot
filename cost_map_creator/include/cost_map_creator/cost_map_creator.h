@@ -27,6 +27,8 @@ private:
 
     // 引数あり関数
     void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
+    double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);
+    void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
     void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
@@ -35,8 +37,11 @@ private:
     // yamlファイルで設定可能な変数
     int hz_;
     bool visualize_current_people_poses_;
+    bool visualize_future_people_poses_;
     std::string robot_frame_;
     std::string people_frame_;
+    double predict_dist_border_;
+    double predict_time_resolution_;
 
     // double local_map_size_;
     // double local_map_resolution_;
@@ -59,6 +64,8 @@ private:
     // Publisher
     ros::Publisher pub_current_ped_poses_;
     ros::Publisher pub_current_people_states_;
+    ros::Publisher pub_future_ped_poses_;
+    ros::Publisher pub_future_people_states_;
 
     std::queue<pedsim_msgs::AgentStatesConstPtr> ped_states_;  // 歩行者情報
     nav_msgs::Odometry robot_odom_;
