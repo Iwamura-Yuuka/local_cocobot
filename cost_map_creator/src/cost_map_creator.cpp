@@ -4,7 +4,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
 {
     // param
     private_nh_.param("hz", hz_, {30});
-    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {true});
+    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
     private_nh_.param("people_frame", people_frame_, {"odom"});
 

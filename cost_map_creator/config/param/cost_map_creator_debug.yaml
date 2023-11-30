@@ -1,0 +1,11 @@
+# デバック用
+
+# デバック用の情報を可視化するかの設定用
+visualize_current_people_poses: true  # 歩行者の現在位置
+
+# 制御周波数[Hz]
+hz: 10              # ループ周波数 [Hz]
+
+# frame_id
+robot_frame: "odom"   # ロボット
+people_frame: "odom"  # 歩行者

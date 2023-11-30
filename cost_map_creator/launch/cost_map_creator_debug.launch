@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <!-- config file path  -->
-    <arg name="rviz_settings" default="$(find cost_map_creator)/config/rviz/pedestrian_data_visualizer.rviz"/>
-    <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator.yaml"/>
+    <arg name="rviz_settings" default="$(find cost_map_creator)/config/rviz/cost_map_creator_debug.rviz"/>
+    <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator_debug.yaml"/>
 
     <!-- node launch -->
     <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_settings)"/> -->
