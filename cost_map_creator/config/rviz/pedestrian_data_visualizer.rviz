@@ -38,7 +38,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -51,11 +51,11 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
-      Value: true
+      Value: false
     - Alpha: 1
-      Arrow Length: 0.30000001192092896
-      Axes Length: 1.2000000476837158
-      Axes Radius: 0.20000000298023224
+      Arrow Length: 0.800000011920929
+      Axes Length: 1
+      Axes Radius: 0.30000001192092896
       Class: rviz/PoseArray
       Color: 255; 25; 0
       Enabled: true
@@ -66,12 +66,12 @@ Visualization Manager:
       Shaft Length: 0.23000000417232513
       Shaft Radius: 0.009999999776482582
       Shape: Axes
-      Topic: /current_ped_position
+      Topic: /current_ped_poses
       Unreliable: false
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 243; 243; 243
     Default Light: true
     Fixed Frame: odom
     Frame Rate: 30
@@ -115,7 +115,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.785398006439209
       Target Frame: <Fixed Frame>
-      Yaw: 0.785398006439209
+      Yaw: 4.518560409545898
     Saved: ~
 Window Geometry:
   Displays:

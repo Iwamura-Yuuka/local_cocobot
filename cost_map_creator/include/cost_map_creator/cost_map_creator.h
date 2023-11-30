@@ -6,11 +6,13 @@
 #include <queue>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
 #include <pedestrian_msgs/PersonState.h>
+#include <pedestrian_msgs/PeopleStates.h>
 
 class CostMapCreator
 {
@@ -24,17 +26,22 @@ private:
     void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     // 引数あり関数
+    void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
     void id_veiwer();
 
     // yamlファイルで設定可能な変数
     int hz_;
-    double local_map_size_;
-    double local_map_resolution_;
+    bool visualize_current_people_poses_;
+    std::string robot_frame_;
+    std::string people_frame_;
+
+    // double local_map_size_;
+    // double local_map_resolution_;
 
     // その他の変数
-    // int current_id = 1000;
+    
     
     // msgの受け取り判定用
     bool flag_ped_states_ = false;
@@ -49,7 +56,8 @@ private:
     ros::Subscriber sub_robot_odom_;
 
     // Publisher
-    ros::Publisher pub_current_ped_position_;
+    ros::Publisher pub_current_ped_poses_;
+    ros::Publisher pub_current_people_states_;
 
     std::queue<pedsim_msgs::AgentStatesConstPtr> ped_states_;  // 歩行者情報
     nav_msgs::Odometry robot_odom_;
