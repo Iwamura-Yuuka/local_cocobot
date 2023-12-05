@@ -28,6 +28,8 @@ private:
     // 引数あり関数
     void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
     double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);
+    double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);
+    double normalize_angle(double theta);
     void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
     void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
@@ -47,7 +49,8 @@ private:
     // double local_map_resolution_;
 
     // その他の変数
-    
+    double tmp_robot_x_;
+    double tmp_robot_y_;
     
     // msgの受け取り判定用
     bool flag_ped_states_ = false;
