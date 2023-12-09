@@ -4,10 +4,12 @@
 
 #include <ros/ros.h>
 #include <queue>
+#include <math.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
@@ -31,9 +33,15 @@ private:
     double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);
     double normalize_angle(double theta);
     void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
+    bool is_in_map(const double dist, const double angle);
+    int get_grid_index(const double dist, const double angle);
+    int xy_to_grid_index(const double x, const double y);
+    double calc_y(const double x, const double a, const double b, const double theta);
+    void calc_cost(const pedestrian_msgs::PeopleStates& future_people);
     void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
+    void init_map();
     void create_cost_map();
 
     // yamlファイルで設定可能な変数
@@ -42,11 +50,10 @@ private:
     bool visualize_future_people_poses_;
     std::string robot_frame_;
     std::string people_frame_;
+    double map_size_;
+    double map_reso_;
     double predict_dist_border_;
     double predict_time_resolution_;
-
-    // double local_map_size_;
-    // double local_map_resolution_;
 
     // その他の変数
     double tmp_robot_x_;
@@ -69,12 +76,14 @@ private:
     ros::Publisher pub_current_people_states_;
     ros::Publisher pub_future_ped_poses_;
     ros::Publisher pub_future_people_states_;
+    ros::Publisher pub_cost_map_;
 
+    // 各種オブジェクト
     std::queue<pedsim_msgs::AgentStatesConstPtr> ped_states_;  // 歩行者情報
-    nav_msgs::Odometry robot_odom_;
+    nav_msgs::Odometry robot_odom_;                            // ロボットの位置情報
+    nav_msgs::OccupancyGrid cost_map_;                         // コストマップ
     // pedestrian_msgs::PersonState current_state_;
     // pedsim_msgs::AgentStateConstPtr person_;
-    // nav_msgs::OccupancyGrid local_map_;
     // geometry_msgs::PoseArray obs_poses_;
 
 };

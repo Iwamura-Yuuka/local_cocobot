@@ -12,6 +12,10 @@ hz: 10              # ループ周波数 [Hz]
 robot_frame: "odom"   # ロボット
 people_frame: "odom"  # 歩行者
 
+# map
+map_size: 5.0    # マップの一辺の長さ [m]
+map_reso: 0.025  # # マップの解像度 [m/cell]
+
 # 予測範囲
 predict_dist_border: 8.0  # 歩行者の将来位置を予測する距離 [m]
 predict_dist_resolution: 2.5  # 1秒先を予測する距離 [m]
