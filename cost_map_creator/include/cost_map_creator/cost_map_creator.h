@@ -43,6 +43,7 @@ private:
     // 引数なし関数
     void init_map();
     void create_cost_map();
+    void create_person_cost_map();
 
     // yamlファイルで設定可能な変数
     int hz_;
