@@ -4,8 +4,8 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 {
     // param
     private_nh_.param("hz", hz_, {30});
-    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
-    private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
+    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {true});
+    private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {true});
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
     private_nh_.param("people_frame", people_frame_, {"odom"});
     private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
@@ -48,7 +48,7 @@ void PedestrianStatePredictor::get_ped_data(pedestrian_msgs::PeopleStates& curre
 
     current_people.header.stamp = now;
     current_people.header.frame_id = people_frame_;
-    
+
     // ped_states_の配列のうち，1回のpublish分のデータ（配列の先頭の要素）のみ取得
     const auto people_states = ped_states_.front();
 
@@ -178,14 +178,14 @@ void PedestrianStatePredictor::update_ped_state()
     // 歩行者の現在位置の可視化
     if(visualize_current_people_poses_)
         visualize_people_pose(current_people, pub_current_ped_poses_, now);
-    
+
     // 歩行者の将来位置を予測
     predict_future_ped_states(current_people, future_people, now);
 
     // 歩行者の将来位置（予測）の可視化
     if(visualize_future_people_poses_)
         visualize_people_pose(future_people, pub_future_ped_poses_, now);
-    
+
     // ped_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
     // これをしないと，front() でデータを取得する際，同じデータしか取得できない
     ped_states_.pop();
@@ -202,10 +202,19 @@ void PedestrianStatePredictor::process()
 
     while(ros::ok())
     {
+        if(flag_ped_states_ == true)
+            ROS_INFO_STREAM("get ped_states!");  // デバック用
+        if(flag_robot_odom_ == true)
+            ROS_INFO_STREAM("get robot_states!");  // デバック用
+
         if((flag_ped_states_ == true) && (flag_robot_odom_ == true))
         {
             update_ped_state();
         }
+
+        // msgの受け取り判定用flagをfalseに戻す
+        flag_ped_states_ = false;
+        flag_robot_odom_ = false;
 
         ros::spinOnce();
         loop_rate.sleep();
