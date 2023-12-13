@@ -3,7 +3,7 @@
 PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 {
     // param
-    private_nh_.param("hz", hz_, {30});
+    private_nh_.param("hz", hz_, {10});
     private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
     private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
@@ -202,11 +202,6 @@ void PedestrianStatePredictor::process()
 
     while(ros::ok())
     {
-        if(flag_ped_states_ == true)
-            ROS_INFO_STREAM("get ped_states!");  // デバック用
-        if(flag_robot_odom_ == true)
-            ROS_INFO_STREAM("get robot_states!");  // デバック用
-
         if((flag_ped_states_ == true) && (flag_robot_odom_ == true))
         {
             update_ped_state();
