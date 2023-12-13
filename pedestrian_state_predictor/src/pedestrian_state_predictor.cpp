@@ -4,8 +4,8 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 {
     // param
     private_nh_.param("hz", hz_, {30});
-    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {true});
-    private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {true});
+    private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
+    private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
     private_nh_.param("people_frame", people_frame_, {"odom"});
     private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
@@ -15,7 +15,7 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 
     // subscriber
     sub_ped_states_ = nh_.subscribe("/pedsim_simulator/simulated_agents", 1, &PedestrianStatePredictor::pedestrian_data_callback, this);
-    sub_robot_odom_ = nh_.subscribe("/pedsim_simulator/robot_position", 1, &PedestrianStatePredictor::robot_odom_callback, this);
+    sub_robot_odom_ = nh_.subscribe("/robot_odom", 1, &PedestrianStatePredictor::robot_odom_callback, this);
 
     // publisher
     pub_current_people_states_ = nh_.advertise<pedestrian_msgs::PeopleStates>("/current_people_states", 1);
