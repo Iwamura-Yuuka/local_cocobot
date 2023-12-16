@@ -2,15 +2,17 @@
 
 # デバック用の情報を可視化するかの設定用
 # trueなら可視化
-visualize_current_people_poses: true  # 歩行者の現在位置
-visualize_future_people_poses: true   # 歩行者の将来位置（予測）
+visualize_current_people_poses: true           # 歩行者の現在位置（odom）
+visualize_selected_current_people_poses: true  # ロボットに近い歩行者の現在位置（base_footprint）
+visualize_future_people_poses: true            # 歩行者の将来位置（予測）
 
 # 制御周波数[Hz]
-hz: 10              # ループ周波数 [Hz]
+hz: 10                          # ループ周波数 [Hz]
 
 # frame_id
-robot_frame: "odom"   # ロボット
-people_frame: "odom"  # 歩行者
+sim_frame: "odom"               # シミュレーター
+robot_frame: "odom"             # ロボット
+people_frame: "base_footprint"  # 歩行者
 
 # 予測範囲
 predict_dist_border: 8.0      # 歩行者の将来位置を予測する距離 [m]
