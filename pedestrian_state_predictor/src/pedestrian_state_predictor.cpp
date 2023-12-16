@@ -207,11 +207,6 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             transform_and_calc_speed(current_person, selected_current_person, after_ones_x, after_ones_y);
             selected_current_people.people_states.push_back(selected_current_person);
 
-            ROS_INFO_STREAM("----- selected_current -----");  // デバック用
-            ROS_INFO_STREAM("id : " << selected_current_person.id);  // デバック用
-            ROS_INFO_STREAM("x : " << selected_current_person.pose.position.x);  // デバック用
-            ROS_INFO_STREAM("y : " << selected_current_person.pose.position.y);  // デバック用
-
             // 何秒先の将来位置を予測するか
             const double predict_time = dist / predict_time_resolution_;
 
@@ -227,7 +222,6 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
 
             // ロボットに対する歩行者の将来位置の方位を計算
             const double theta = person_theta - robot_theta;
-            ROS_INFO_STREAM("theta : " << theta);  // デバック用
 
             // ロボットの進行方向前方に移動する歩行者のみ考慮
             if((theta <= M_PI/2) && (theta >= -M_PI/2))
@@ -237,11 +231,6 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
                 transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
                 future_person.twist.linear.x = selected_current_person.twist.linear.x;
                 future_person.twist.linear.y = selected_current_person.twist.linear.y;
-
-                ROS_INFO_STREAM("----- future -----");  // デバック用
-                ROS_INFO_STREAM("id : " << future_person.id);  // デバック用
-                ROS_INFO_STREAM("x : " << future_person.pose.position.x);  // デバック用
-                ROS_INFO_STREAM("y : " << future_person.pose.position.y);  // デバック用
 
                 future_people.people_states.push_back(future_person);
             }
