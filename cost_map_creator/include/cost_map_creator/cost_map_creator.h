@@ -10,9 +10,9 @@
 // #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2/utils.h>
+// #include <geometry_msgs/TransformStamped.h>
+// #include <tf2_ros/transform_listener.h>
+// #include <tf2/utils.h>
 
 // original_msgs
 #include <pedestrian_msgs/PersonState.h>
@@ -28,7 +28,7 @@ private:
     // コールバック関数
     void current_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg);
     void future_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg);
-    void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    // void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     // 引数あり関数
     // void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
@@ -44,7 +44,7 @@ private:
     // void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
-    // void init_map();
+    void init_map(nav_msgs::OccupancyGrid& map);
     void create_cost_map();
     // void create_person_cost_map();
 
@@ -56,6 +56,9 @@ private:
     std::string cost_map_frame_;
     double map_size_;
     double map_reso_;
+    double ellipse_front_long_max_;       // 走行コストの楕円の長辺（前方）の最大値
+    double ellipse_back_long_max_;        // 走行コストの楕円の長辺（後方）の最大値
+    double ellipse_short_max_;      // 走行コストの楕円の短辺の最大値
     // double predict_dist_border_;
     // double predict_time_resolution_;
 
@@ -66,7 +69,7 @@ private:
     // msgの受け取り判定用
     bool flag_current_people_states_ = false;
     bool flag_future_people_states_ = false;
-    bool flag_robot_odom_ = false;
+    // bool flag_robot_odom_ = false;
 
     // NodeHandle
     ros::NodeHandle nh_;
@@ -80,14 +83,14 @@ private:
     // Publisher
     ros::Publisher pub_cost_map_;
 
-    // tf
-    tf2_ros::Buffer tf_buffer_;
-
     // 各種オブジェクト
     std::queue<pedestrian_msgs::PeopleStatesConstPtr> current_people_states_;  // 現在の歩行者情報
     std::queue<pedestrian_msgs::PeopleStatesConstPtr> future_people_states_;   // 予測した歩行者情報
-    nav_msgs::Odometry robot_odom_;                                            // ロボットの位置情報
+    // pedestrian_msgs::PeopleStatesConstPtr current_people_states_;
+    // pedestrian_msgs::PeopleStatesConstPtr future_people_states_;
+    // nav_msgs::Odometry robot_odom_;                                            // ロボットの位置情報
     nav_msgs::OccupancyGrid cost_map_;                                         // コストマップ
+    nav_msgs::OccupancyGrid person_map_;                                       // 歩行者1人分のコストを計算する用
     // pedestrian_msgs::PersonState current_state_;
     // pedsim_msgs::AgentStateConstPtr person_;
     // geometry_msgs::PoseArray obs_poses_;

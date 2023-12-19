@@ -9,14 +9,19 @@
 hz: 10              # ループ周波数 [Hz]
 
 # frame_id
-people_frame: "odom"  # 歩行者
-cost_map_frame: "base_link"  # コストマップ
+people_frame: "base_footprint"     # 歩行者
+cost_map_frame: "baase_footprint"  # コストマップ
 # robot_frame: "odom"   # ロボット
 # people_frame: "odom"  # 歩行者
 
 # map
-# map_size: 5.0    # マップの一辺の長さ [m]
-# map_reso: 0.025  # # マップの解像度 [m/cell]
+map_size: 5.0    # マップの一辺の長さ [m]
+map_reso: 0.025  # マップの解像度 [m/cell]
+
+# 楕円
+ellipse_front_long_max: 1.0  # 楕円の長軸（歩行者の進行方向前方）の最大値 [m]
+ellipse_back_long_max: 0.5   # 楕円の長軸（歩行者の進行方向後方）の最大値 [m]
+ellipse_short_max: 0.5       # 楕円の短軸の最大値 [m]
 
 # 予測範囲
 # predict_dist_border: 8.0  # 歩行者の将来位置を予測する距離 [m]

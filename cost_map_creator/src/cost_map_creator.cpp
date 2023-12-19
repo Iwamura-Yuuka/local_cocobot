@@ -6,73 +6,74 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("hz", hz_, {10});
     // private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
     // private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
-    private_nh_.param("people_frame", people_frame_, {"odom"});
-    private_nh_.param("cost_map_frame", cost_map_frame_, {"base_link"});
+    private_nh_.param("people_frame", people_frame_, {"base_footprint"});
+    private_nh_.param("cost_map_frame", cost_map_frame_, {"base_footprint"});
     private_nh_.param("map_size", map_size_, {5.0});
     private_nh_.param("map_reso", map_reso_, {0.025});
+    private_nh_.param("ellipse_front_long_max", ellipse_front_long_max_, {1.0});
+    private_nh_.param("ellipse_back_long_max", ellipse_back_long_max_, {0.5});
+    private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
     // private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
     // private_nh_.param("predict_time_resolution", predict_time_resolution_, {2.5});
     // private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
     // private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
     // subscriber
-    sub_current_people_states_ = nh_.subscribe("/current_people_states", 1, &CostMapCreator::current_people_states_callback, this);
+    sub_current_people_states_ = nh_.subscribe("/selected_current_people_states", 1, &CostMapCreator::current_people_states_callback, this);
     sub_future_people_states_ = nh_.subscribe("/future_people_states", 1, &CostMapCreator::future_people_states_callback, this);
-    sub_robot_odom_ = nh_.subscribe("/pedsim_simulator/robot_position", 1, &CostMapCreator::robot_odom_callback, this);
 
     // publisher
     pub_cost_map_ = nh_.advertise<nav_msgs::OccupancyGrid>("/cost_map", 1);
 
     // debug
 
-    // --- 基本設定 ---
+    // --- 基本設定（コストマップ） ---
     // header
     cost_map_.header.frame_id = cost_map_frame_;
-    // // info
+    // info
     cost_map_.info.resolution = map_reso_;
     cost_map_.info.width      = int(round(map_size_/map_reso_));
     cost_map_.info.height     = int(round(map_size_/map_reso_));
     cost_map_.info.origin.position.x = -map_size_/2.0;
     cost_map_.info.origin.position.y = -map_size_/2.0;
-    // // data
+    // data
     cost_map_.data.reserve(cost_map_.info.width * cost_map_.info.height);
+
+    // --- 基本設定（personマップ） ---
+    // header
+    person_map_.header.frame_id = cost_map_frame_;
+    // info
+    person_map_.info.resolution = map_reso_;
+    person_map_.info.width      = int(round(map_size_/map_reso_));
+    person_map_.info.height     = int(round(map_size_/map_reso_));
+    person_map_.info.origin.position.x = -map_size_/2.0;
+    person_map_.info.origin.position.y = -map_size_/2.0;
+    // // data
+    person_map_.data.reserve(cost_map_.info.width * cost_map_.info.height);
 }
 
 // 現在の歩行者情報のコールバック関数
 void CostMapCreator::current_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
-    geometry_msgs::TransformStamped transform;
-
     current_people_states_.emplace(msg);
-
-    try
-    {
-        transform = tf_buffer_.lookupTransform(cost_map_frame_, people_frame_, ros::Time(0));
-        flag_current_people_states_ = true;
-    }
-    catch(tf2::TransformException& ex)
-    {
-        ROS_WARN("%s", ex.what());
-        flag_current_people_states_ = false;
-        return;
-    }
-
-    tf2::doTransform(*msg, current_people_states_, transform);
+    // current_people_states_ = msg;
+    flag_current_people_states_ = true;
 }
 
 // 予測した歩行者情報のコールバック関数
 void CostMapCreator::future_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
     future_people_states_.emplace(msg);
+    // future_people_states_ = msg;
     flag_future_people_states_ = true;
 }
 
 // ロボットのodomのコールバック関数
-void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
-{
-    robot_odom_ = *msg;
-    flag_robot_odom_ = true;
-}
+// void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
+// {
+//     robot_odom_ = *msg;
+//     flag_robot_odom_ = true;
+// }
 
 // 歩行者データを取得
 // void CostMapCreator::get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now)
@@ -129,18 +130,18 @@ void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg
 // }
 
 // マップの初期化(すべて「未知」にする)
-// void CostMapCreator::init_map()
-// {
-//     cost_map_.data.clear();
+void CostMapCreator::init_map(nav_msgs::OccupancyGrid& map)
+{
+    map.data.clear();
 
-//     // マップサイズを計算
-//     const int size = cost_map_.info.width * cost_map_.info.height;
+    // マップサイズを計算
+    const int size = map.info.width * map.info.height;
 
-//     for(int i=0; i<size; i++)
-//     {
-//         cost_map_.data.push_back(-1);  //「未知」にする
-//     }
-// }
+    for(int i=0; i<size; i++)
+    {
+        map.data.push_back(-1);  //「未知」にする
+    }
+}
 
 // マップ内の場合、trueを返す
 // bool CostMapCreator::is_in_map(const double dist, const double angle)
@@ -212,6 +213,35 @@ void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg
 
 void CostMapCreator::create_cost_map()
 {
+    // コストマップの初期化
+    init_map(cost_map_);
+
+    pedestrian_msgs::PersonState current_person;
+
+    const auto current_people = current_people_states_.front();
+    const auto future_people = future_people_states_.front();
+    
+    // 予測した歩行者の将来位置に対して走行コストを計算
+    for(const auto& future_person : future_people->people_states)
+    {
+        ROS_INFO_STREAM("--- future ---");
+        ROS_INFO_STREAM("id : " << future_person.id);
+        ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
+        ROS_INFO_STREAM("linear_x" << future_person.twist.linear.x);
+        // 対応する現在の歩行者情報を探索
+        for(const auto& person : current_people->people_states)
+        {
+            if(person.id == future_person.id)
+            {
+                current_person = person;
+                ROS_INFO_STREAM("--- current ---");
+                ROS_INFO_STREAM("id : " << current_person.id);
+                ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
+                ROS_INFO_STREAM("linear_x" << current_person.twist.linear.x);
+                break;
+            }
+        }
+    }
     // pedestrian_msgs::PeopleStates current_people;
     // pedestrian_msgs::PeopleStates future_people;
     // ros::Time now = ros::Time::now();
@@ -270,11 +300,10 @@ void CostMapCreator::create_cost_map()
 void CostMapCreator::process()
 {
     ros::Rate loop_rate(hz_);
-    tf2_ros::TransformListener tf_listener(tf_buffer_);
 
     while(ros::ok())
     {
-        if((flag_current_people_states_ == true) && (flag_future_people_states_ == true) && (flag_robot_odom_ == true))
+        if((flag_current_people_states_ == true) && (flag_future_people_states_ == true))
         {
             ROS_INFO_STREAM("get ped_states & robot_state!");  // デバック用
             create_cost_map();
@@ -283,7 +312,7 @@ void CostMapCreator::process()
         // msgの受け取り判定用flagをfalseに戻す
         flag_current_people_states_ = false;
         flag_future_people_states_ = false;
-        flag_robot_odom_ = false;
+        // flag_robot_odom_ = false;
 
         ros::spinOnce();
         loop_rate.sleep();
