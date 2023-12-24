@@ -13,6 +13,9 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("ellipse_front_long_max", ellipse_front_long_max_, {1.0});
     private_nh_.param("ellipse_back_long_max", ellipse_back_long_max_, {0.5});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
+    private_nh_.param("weight_distance", weight_distance_, {0.5});
+    private_nh_.param("weight_speed", weight_speed_, {0.5});
+    private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
     // private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
     // private_nh_.param("predict_time_resolution", predict_time_resolution_, {2.5});
     // private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
@@ -49,7 +52,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     person_map_.info.origin.position.x = -map_size_/2.0;
     person_map_.info.origin.position.y = -map_size_/2.0;
     // // data
-    person_map_.data.reserve(cost_map_.info.width * cost_map_.info.height);
+    person_map_.data.reserve(person_map_.info.width * person_map_.info.height);
 }
 
 // 現在の歩行者情報のコールバック関数
@@ -68,67 +71,6 @@ void CostMapCreator::future_people_states_callback(const pedestrian_msgs::People
     flag_future_people_states_ = true;
 }
 
-// ロボットのodomのコールバック関数
-// void CostMapCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
-// {
-//     robot_odom_ = *msg;
-//     flag_robot_odom_ = true;
-// }
-
-// 歩行者データを取得
-// void CostMapCreator::get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now)
-// {
-//     pedestrian_msgs::PersonState current_person;
-
-//     current_people.header.stamp = now;
-//     current_people.header.frame_id = people_frame_;
-    
-//     // ped_states_の配列のうち，1回のpublish分のデータ（配列の先頭の要素）のみ取得
-//     const auto people_states = ped_states_.front();
-
-//     // msg型を pedsim_msgs/AgentStates から pedestrian_msgs/PeopleStates に変更
-//     for(const auto& person : people_states->agent_states)
-//     {
-//         current_person.id = person.id;
-//         current_person.pose.position.x = person.pose.position.x;
-//         current_person.pose.position.y = person.pose.position.y;
-//         current_person.twist.linear.x = person.twist.linear.x;
-//         current_person.twist.linear.y = person.twist.linear.y;
-
-//         current_people.people_states.push_back(current_person);
-//     }
-
-//     pub_current_people_states_.publish(current_people);
-// }
-
-// ロボットと歩行者の間の距離を計算
-// double CostMapCreator::calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y)
-// {
-//     const double dx = person_x - robot_x;
-//     const double dy = person_y - robot_y;
-
-//     return hypot(dx, dy);
-// }
-
-// 方位を計算
-// double CostMapCreator::calc_direction(const double x1, const double y1, const double x2, const double y2)
-// {
-//     const double theta = atan2(y2 - y1, x2 - x1);
-
-//     return normalize_angle(theta);
-// }
-
-// 適切な角度(-M_PI ~ M_PI)を返す
-// double CostMapCreator::normalize_angle(double theta)
-// {
-//     if(theta > M_PI)
-//         theta -= 2.0 * M_PI;
-//     if(theta < -M_PI)
-//         theta += 2.0 * M_PI;
-
-//     return theta;
-// }
-
 // マップの初期化(すべて「未知」にする)
 void CostMapCreator::init_map(nav_msgs::OccupancyGrid& map)
 {
@@ -143,19 +85,91 @@ void CostMapCreator::init_map(nav_msgs::OccupancyGrid& map)
     }
 }
 
-// マップ内の場合、trueを返す
-// bool CostMapCreator::is_in_map(const double dist, const double angle)
-// {
-//     const double x = dist * cos(angle);
-//     const double y = dist * sin(angle);
-//     const int index_x = int(round((x - cost_map_.info.origin.position.x) / cost_map_.info.resolution));
-//     const int index_y = int(round((y - cost_map_.info.origin.position.y) / cost_map_.info.resolution));
+// 速さを計算
+double CostMapCreator::calc_speed(const double linear_x, const double linear_y)
+{
+    const double abs_linear_x = abs(linear_x);
+    const double abs_linear_y = abs(linear_y);
 
-//     if(index_x<cost_map_.info.width and index_y<cost_map_.info.height)
-//         return true;
-//     else
-//         return false;
+    return hypot(abs_linear_x, abs_linear_y);
+}
+
+// 楕円の長軸の長さのパラメーターを計算
+double CostMapCreator::calc_ellipse_long_param(const pedestrian_msgs::PersonState& person)
+{
+    // ロボットからの距離を計算
+    const double dist = hypot(person.pose.position.x, person.pose.position.y);
+    const double normalize_dist = dist / map_size_;  // 正規化
+
+    // 歩行者の速さを計算
+    const double speed = calc_speed(person.twist.linear.x, person.twist.linear.y);
+    const double normalize_speed = speed / ped_speed_max_;  // 正規化
+
+    return weight_distance_*normalize_dist + weight_speed_*normalize_speed;
+}
+
+// 楕円の短軸の長さのパラメーターを計算
+double CostMapCreator::calc_ellipse_short_param(const double x, const double y)
+{
+    // ロボットからの距離を計算
+    const double dist = hypot(x, y);
+    const double normalize_dist = dist / map_size_;  // 正規化
+
+    return normalize_dist;
+}
+
+// 方位を計算
+double CostMapCreator::calc_direction(const double x, const double y)
+{
+    const double theta = atan2(y, x);
+
+    return normalize_angle(theta);
+}
+
+// 適切な角度(-M_PI ~ M_PI)を返す
+double CostMapCreator::normalize_angle(double theta)
+{
+    if(theta > M_PI)
+        theta -= 2.0 * M_PI;
+    if(theta < -M_PI)
+        theta += 2.0 * M_PI;
+
+    return theta;
+}
+
+// マップ内の場合、trueを返す
+bool CostMapCreator::is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y)
+{
+    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+
+    if((index_x < map.info.width) && (index_y < map.info.height))
+        return true;
+    else
+        return false;
+}
+
+// 座標からグリッドのインデックスを返す
+int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y)
+{
+    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+
+    return index_x + (index_y * cost_map_.info.width);
+}
+
+
+// ロボットと歩行者の間の距離を計算
+// double CostMapCreator::calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y)
+// {
+//     const double dx = person_x - robot_x;
+//     const double dy = person_y - robot_y;
+
+//     return hypot(dx, dy);
 // }
+
+
+
 
 // 距離と角度からグリッドのインデックスを返す
 // int CostMapCreator::get_grid_index(const double dist, const double angle)
@@ -194,22 +208,27 @@ void CostMapCreator::init_map(nav_msgs::OccupancyGrid& map)
 
 // }
 
-// 1人のみ考慮したコストマップを作成
-// void CostMapCreator::create_person_cost_map()
-// {
-//     nav_msgs::OccupancyGrid person_cost_map; 
-//     // --- 基本設定 ---
-//     // header
-//     person_cost_map.header.frame_id = "odom";
-//     // info
-//     person_cost_map.info.resolution = map_reso_;
-//     person_cost_map.info.width      = int(round(map_size_/map_reso_));
-//     person_cost_map.info.height     = int(round(map_size_/map_reso_));
-//     person_cost_map.info.origin.position.x = -map_size_/2.0;
-//     person_cost_map.info.origin.position.y = -map_size_/2.0;
-//     // data
-//     person_cost_map.data.reserve(cost_map_.info.width * cost_map_.info.height);
-// }
+// 歩行者1人のみ考慮したコストマップを作成
+void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person)
+{
+    // 走行コストの楕円の軸の長さを計算
+    const double long_param = calc_ellipse_long_param(current_person);
+    const double ellipse_front_long = ellipse_front_long_max_ * long_param;                                                                      // 楕円の長軸（前方）
+    const double ellipse_back_long = ellipse_back_long_max_ * long_param;                                                                        // 楕円の長軸（後方）
+    const double ellipse_short = ellipse_short_max_ * calc_ellipse_short_param(current_person.pose.position.x, current_person.pose.position.y);  // 楕円の短軸
+
+    // 歩行者の進行方向を計算
+    const double theta = calc_direction(current_person.twist.linear.x, current_person.twist.linear.y);
+
+    // 予測した歩行者の将来位置のグリッドを占有に変える
+    if(is_in_map(person_map_, future_person.pose.position.x, future_person.pose.position.y))
+    {
+        const int grid_index = xy_to_grid_index(cost_map_, future_person.pose.position.x, future_person.pose.position.y);
+        person_map_.data[grid_index] = 100;  // 占有にする
+    }
+
+    
+}
 
 void CostMapCreator::create_cost_map()
 {
@@ -224,6 +243,8 @@ void CostMapCreator::create_cost_map()
     // 予測した歩行者の将来位置に対して走行コストを計算
     for(const auto& future_person : future_people->people_states)
     {
+        // パーソンマップの初期化
+
         ROS_INFO_STREAM("--- future ---");
         ROS_INFO_STREAM("id : " << future_person.id);
         ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
@@ -234,13 +255,31 @@ void CostMapCreator::create_cost_map()
             if(person.id == future_person.id)
             {
                 current_person = person;
+                flag_ped_data_matching_ = true;
+
+                const double speed = calc_speed(current_person.twist.linear.x, current_person.twist.linear.y);
                 ROS_INFO_STREAM("--- current ---");
                 ROS_INFO_STREAM("id : " << current_person.id);
                 ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
-                ROS_INFO_STREAM("linear_x" << current_person.twist.linear.x);
+                ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
+                ROS_INFO_STREAM("speed : " << speed);
+
+                // パーソンマップの初期化
+                init_map(person_map_);
+
+                // 歩行者1人のみ考慮したコストマップを作成
+                create_person_cost_map(current_person, future_person);
+
                 break;
             }
         }
+
+        // 対応する歩行者情報を見つけられなかった場合はメッセージを表示
+        if(flag_ped_data_matching_ == false)
+            ROS_WARN_STREAM("!!! No matching ped_data !!!");
+
+        // 歩行者情報のマッチング確認用flagをfalseに戻す
+        flag_ped_data_matching_ = false;
     }
     // pedestrian_msgs::PeopleStates current_people;
     // pedestrian_msgs::PeopleStates future_people;
@@ -267,9 +306,11 @@ void CostMapCreator::create_cost_map()
     // calc_cost(future_people);
 
     // pub_cost_map_.publish(cost_map_);
-    // // ped_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
-    // // これをしないと，front() でデータを取得する際，同じデータしか取得できない
-    // ped_states_.pop();
+
+    // current_people_states_とfuture_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
+    // これをしないと，front() でデータを取得する際，同じデータしか取得できない
+    current_people_states_.pop();
+    future_people_states_.pop();
 
     // // ロボットの位置を格納
     // tmp_robot_x_ = robot_odom_.pose.pose.position.x;

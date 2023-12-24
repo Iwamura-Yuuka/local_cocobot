@@ -31,20 +31,27 @@ private:
     // void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     // 引数あり関数
+    void init_map(nav_msgs::OccupancyGrid& map);
+    double calc_speed(const double linear_x, const double linear_y);
+    double calc_ellipse_long_param(const pedestrian_msgs::PersonState& person);
+    double calc_ellipse_short_param(const double x, const double y);
+    double calc_direction(const double x, const double y);
+    double normalize_angle(double theta);
+    bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);
+    int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);
     // void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
     // double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);
-    // double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);
-    // double normalize_angle(double theta);
     // void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
-    // bool is_in_map(const double dist, const double angle);
+    // bool is_in_map(nav_msgs::OccupancyGrid& map, const double dist, const double angle);
     // int get_grid_index(const double dist, const double angle);
     // int xy_to_grid_index(const double x, const double y);
     // double calc_y(const double x, const double a, const double b, const double theta);
     // void calc_cost(const pedestrian_msgs::PeopleStates& future_people);
+    void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person);
     // void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
-    void init_map(nav_msgs::OccupancyGrid& map);
+    // void init_map(nav_msgs::OccupancyGrid& map);
     void create_cost_map();
     // void create_person_cost_map();
 
@@ -56,9 +63,12 @@ private:
     std::string cost_map_frame_;
     double map_size_;
     double map_reso_;
-    double ellipse_front_long_max_;       // 走行コストの楕円の長辺（前方）の最大値
-    double ellipse_back_long_max_;        // 走行コストの楕円の長辺（後方）の最大値
-    double ellipse_short_max_;      // 走行コストの楕円の短辺の最大値
+    double ellipse_front_long_max_;       // 走行コストの楕円の長軸（前方）の最大値
+    double ellipse_back_long_max_;        // 走行コストの楕円の長軸（後方）の最大値
+    double ellipse_short_max_;      // 走行コストの楕円の短軸の最大値
+    double weight_distance_;       // ロボットからの距離に関する項の重み定数
+    double weight_speed_;       // 歩行者の速さに関する項の重み定数
+    double ped_speed_max_;         // 歩行者の歩く速さの最大値
     // double predict_dist_border_;
     // double predict_time_resolution_;
 
@@ -69,7 +79,9 @@ private:
     // msgの受け取り判定用
     bool flag_current_people_states_ = false;
     bool flag_future_people_states_ = false;
-    // bool flag_robot_odom_ = false;
+    
+    // 歩行者情報のマッチング確認用
+    bool flag_ped_data_matching_ = false;
 
     // NodeHandle
     ros::NodeHandle nh_;
