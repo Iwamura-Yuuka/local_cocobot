@@ -16,6 +16,8 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
+    private_nh_.param("min_cost", min_cost_, {10});
+
     // private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
     // private_nh_.param("predict_time_resolution", predict_time_resolution_, {2.5});
     // private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
@@ -158,6 +160,192 @@ int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double 
     return index_x + (index_y * cost_map_.info.width);
 }
 
+// 長軸方向のマスをカウント
+int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta)
+{
+    const double count_reso = 0.01;      // 座標を計算する距離の刻み幅
+    Coordinate next = {start_x, start_y};  // 計算後の座標格納用
+
+    next.x = start_x + (count_reso * cos(theta));
+    next.y = start_y + (count_reso * sin(theta));
+
+    // グリッドのインデックスが変わったかの判定用（刻み幅）
+    double change_reso_x = map_reso_;
+    double change_reso_y = map_reso_;
+
+    // xyが増加していればtrue
+    bool flag_change_reso_x = true;
+    bool flag_change_reso_y = true;
+
+    // xの増減の仕方を確認
+    if(next.x <= start_x)
+    {
+        change_reso_x = -1 * map_reso_;
+        flag_change_reso_x = false;
+    }
+    
+    // yの増減の仕方を確認
+     if(next.y <= start_y)
+    {
+        change_reso_y = -1 * map_reso_;
+        flag_change_reso_y = false;
+    }
+
+    // グリッドのインデックスが変わったかの判定用（座標）
+    double change_border_x = start_x + change_reso_x;
+    double change_border_y = start_y + change_reso_y;
+
+    int grid_counter = 0;
+
+    // マスをカウント
+    for(double l=count_reso; l <= length; l+=count_reso)
+    {
+        // 座標を計算
+        next.x = start_x + (l * cos(theta));
+        next.y = start_y + (l * sin(theta));
+
+        // グリッドのインデックスが変わったかの判定
+        if((flag_change_reso_x == true) && (flag_change_reso_y == true))
+        {
+            if((next.x >= change_border_x) && (next.y >= change_border_y))
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+            else if(next.x >= change_border_x)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+
+                grid_counter++;
+            }
+            else if(next.y >= change_border_y)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+        }
+        else if((flag_change_reso_x == true) && (flag_change_reso_y == false))
+        {
+            if((next.x >= change_border_x) && (next.y <= change_border_y))
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+            else if(next.x >= change_border_x)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+
+                grid_counter++;
+            }
+            else if(next.y <= change_border_y)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+        }
+        else if((flag_change_reso_x == false) && (flag_change_reso_y == true))
+        {
+            if((next.x <= change_border_x) && (next.y >= change_border_y))
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+            else if(next.x <= change_border_x)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+
+                grid_counter++;
+            }
+            else if(next.y >= change_border_y)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+        }
+        else if((flag_change_reso_x == false) && (flag_change_reso_y == false))
+        {
+            if((next.x <= change_border_x) && (next.y <= change_border_y))
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+            else if(next.x <= change_border_x)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_x += change_reso_x;
+
+                grid_counter++;
+            }
+            else if(next.y <= change_border_y)
+            {
+                // 座標を格納
+                side.push_back(next);
+
+                // インデックスが変わったかの判定用の座標を更新
+                change_border_y += change_reso_y;
+
+                grid_counter++;
+            }
+        }
+    }
+
+    return grid_counter;
+}
+
 
 // ロボットと歩行者の間の距離を計算
 // double CostMapCreator::calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y)
@@ -223,11 +411,45 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
     // 予測した歩行者の将来位置のグリッドを占有に変える
     if(is_in_map(person_map_, future_person.pose.position.x, future_person.pose.position.y))
     {
-        const int grid_index = xy_to_grid_index(cost_map_, future_person.pose.position.x, future_person.pose.position.y);
+        const int grid_index = xy_to_grid_index(person_map_, future_person.pose.position.x, future_person.pose.position.y);
         person_map_.data[grid_index] = 100;  // 占有にする
     }
 
-    
+    // 長軸方向のグリッドを探索
+    std::vector<Coordinate> long_side;
+    const int grid_size = count_grid(long_side, future_person.pose.position.x, future_person.pose.position.y, ellipse_front_long, theta);
+
+    // 探索した長軸方向のグリッドにコストを割り当てる
+    const double front_long_cost_reso = (100 - min_cost_) / grid_size;
+    double front_long_cost = 100;
+
+    for(const auto& front_point : long_side)
+    {
+        // コストを計算
+        front_long_cost -= front_long_cost_reso;
+
+        // 対応するグリッドがマップ内であれば，コストを割り当て
+        if(is_in_map(person_map_, front_point.x, front_point.y))
+        {
+            const int grid_index = xy_to_grid_index(person_map_, front_point.x, front_point.y);
+            person_map_.data[grid_index] = front_long_cost;
+        }
+
+        // 垂直方向に関しても探索
+    }
+}
+
+// person_map_のコストをコストマップにコピー
+void CostMapCreator::copy_cost()
+{
+    const int size = cost_map_.info.width * cost_map_.info.height;
+
+    // コストマップに現在割り当てられているコストより大きければ，コストを更新
+    for(int i=0; i<size; i++)
+    {
+        if(person_map_.data[i] > cost_map_.data[i])
+            cost_map_.data[i] = person_map_.data[i];
+    }
 }
 
 void CostMapCreator::create_cost_map()
@@ -270,6 +492,9 @@ void CostMapCreator::create_cost_map()
                 // 歩行者1人のみ考慮したコストマップを作成
                 create_person_cost_map(current_person, future_person);
 
+                // person_map_のコストをコストマップにコピー
+                copy_cost();
+
                 break;
             }
         }
@@ -305,7 +530,7 @@ void CostMapCreator::create_cost_map()
     // // 走行コストを計算
     // calc_cost(future_people);
 
-    // pub_cost_map_.publish(cost_map_);
+    pub_cost_map_.publish(cost_map_);
 
     // current_people_states_とfuture_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
     // これをしないと，front() でデータを取得する際，同じデータしか取得できない
@@ -346,7 +571,7 @@ void CostMapCreator::process()
     {
         if((flag_current_people_states_ == true) && (flag_future_people_states_ == true))
         {
-            ROS_INFO_STREAM("get ped_states & robot_state!");  // デバック用
+            ROS_INFO_STREAM("get ped_states!");  // デバック用
             create_cost_map();
         }
 

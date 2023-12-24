@@ -30,6 +30,9 @@ weight_velocity: 0.5         # 歩行者の速さに関する項
 # 歩行者関連
 ped_speed_max: 1.5           # 歩く速さの最大値 [m/s]
 
+# コストマップ
+min_cost: 10                 # 割り当てるコストの最小値
+
 # 予測範囲
 # predict_dist_border: 8.0  # 歩行者の将来位置を予測する距離 [m]
 # predict_dist_resolution: 2.5  # 1秒先を予測する距離 [m]

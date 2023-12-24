@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <!-- config file path  -->
-    <arg name="rviz_settings" default="$(find pedestrian_state_predictor)/config/rviz/debug_with_ccv.rviz"/>
+    <arg name="rviz_settings" default="$(find cost_map_creator)/config/rviz/debug_with_ccv.rviz"/>
     <arg name="pedestrian_state_predictor_settings" default="$(find pedestrian_state_predictor)/config/param/pedestrian_state_predictor_debug.yaml"/>
     <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator_debug.yaml"/>
 

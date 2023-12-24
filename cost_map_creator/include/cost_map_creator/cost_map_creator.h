@@ -18,6 +18,14 @@
 #include <pedestrian_msgs/PersonState.h>
 #include <pedestrian_msgs/PeopleStates.h>
 
+// ===== 構造体 =====
+struct Coordinate
+{
+    double x;  // [m]
+    double y;  // [m]
+};
+
+// ===== クラス =====
 class CostMapCreator
 {
 public:
@@ -39,6 +47,7 @@ private:
     double normalize_angle(double theta);
     bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);
     int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);
+    int count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);
     // void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
     // double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);
     // void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
@@ -52,23 +61,25 @@ private:
 
     // 引数なし関数
     // void init_map(nav_msgs::OccupancyGrid& map);
+    void copy_cost();
     void create_cost_map();
     // void create_person_cost_map();
 
     // yamlファイルで設定可能な変数
-    int hz_;
+    int hz_;                                // ループ周波数 [Hz]
     // bool visualize_current_people_poses_;
     // bool visualize_future_people_poses_;
-    std::string people_frame_;
-    std::string cost_map_frame_;
-    double map_size_;
-    double map_reso_;
-    double ellipse_front_long_max_;       // 走行コストの楕円の長軸（前方）の最大値
-    double ellipse_back_long_max_;        // 走行コストの楕円の長軸（後方）の最大値
-    double ellipse_short_max_;      // 走行コストの楕円の短軸の最大値
+    std::string people_frame_;             // 歩行者の位置情報のframe_id
+    std::string cost_map_frame_;           // コストマップのframe_id
+    double map_size_;                     // マップの一辺の長さ [m]
+    double map_reso_;                     // マップの解像度 [m/cell]
+    double ellipse_front_long_max_;       // 走行コストの楕円の長軸（前方）の最大値 [m]
+    double ellipse_back_long_max_;        // 走行コストの楕円の長軸（後方）の最大値 [m]
+    double ellipse_short_max_;      // 走行コストの楕円の短軸の最大値 [m]
     double weight_distance_;       // ロボットからの距離に関する項の重み定数
     double weight_speed_;       // 歩行者の速さに関する項の重み定数
-    double ped_speed_max_;         // 歩行者の歩く速さの最大値
+    double ped_speed_max_;         // 歩行者の歩く速さの最大値 [m/s]
+    int min_cost_;              // 割り当てるコストの最小値
     // double predict_dist_border_;
     // double predict_time_resolution_;
 
