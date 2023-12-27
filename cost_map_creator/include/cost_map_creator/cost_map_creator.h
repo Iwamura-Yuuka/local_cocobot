@@ -48,6 +48,7 @@ private:
     bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);
     int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);
     int count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);
+    void assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index);
     double calc_distance(const double person_x, const double person_y, const double x, const double y);
     double calc_short_side_length(const double x, const double a, const double b);
     // void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);

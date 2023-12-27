@@ -345,6 +345,23 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
     return grid_counter;
 }
 
+// person_cost_mapにコストを割り当てる
+void CostMapCreator::assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index)
+{
+    const int grid_index = xy_to_grid_index(person_map_, x, y);
+
+    // すでに割り当てられているコストより大きければ更新
+    if(person_map_.data[grid_index] < cost)
+        person_map_.data[grid_index] = cost;
+
+    // コストを割り当てたindexの最小値と最大値を更新
+    if(grid_index < min_index)
+            min_index = grid_index;
+
+    if(grid_index > max_index)
+        max_index = grid_index;
+}
+
 // 歩行者位置までの距離を計算
 double CostMapCreator::calc_distance(const double person_x, const double person_y, const double x, const double y)
 {
@@ -406,21 +423,7 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 
         // 対応するグリッドがマップ内であれば，コストを割り当て
         if(is_in_map(person_map_, front_point.x, front_point.y))
-        {
-            const int grid_index = xy_to_grid_index(person_map_, front_point.x, front_point.y);
-
-            // すでに割り当てられているコストより大きければ更新
-            if(person_map_.data[grid_index] < front_long_cost)
-                person_map_.data[grid_index] = front_long_cost;
-
-            // コストを割り当てたindexの最小値と最大値を更新
-            if(grid_index < min_index)
-                min_index = grid_index;
-
-            if(grid_index > max_index)
-                max_index = grid_index;
-
-        }
+            assign_cost_for_person_cost_map(front_point.x, front_point.y, front_long_cost, min_index, max_index);
 
         // 垂直方向の長さを計算
         const double dist = calc_distance(future_person.pose.position.x, future_person.pose.position.y, front_point.x, front_point.y);
@@ -441,21 +444,7 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 
             // 対応するグリッドがマップ内であれば，コストを割り当て
             if(is_in_map(person_map_, short_plus_point.x, short_plus_point.y))
-            {
-                const int grid_index = xy_to_grid_index(person_map_, short_plus_point.x, short_plus_point.y);
-
-                // すでに割り当てられているコストより大きければ更新
-                if(person_map_.data[grid_index] < short_plus_cost)
-                    person_map_.data[grid_index] = short_plus_cost;
-
-                // コストを割り当てたindexの最小値と最大値を更新
-                if(grid_index < min_index)
-                    min_index = grid_index;
-
-                if(grid_index > max_index)
-                    max_index = grid_index;
-            }
-
+                assign_cost_for_person_cost_map(short_plus_point.x, short_plus_point.y, short_plus_cost, min_index, max_index);
         }
 
         // 垂直方向（下）に関して探索
@@ -473,21 +462,7 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 
             // 対応するグリッドがマップ内であれば，コストを割り当て
             if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
-            {
-                const int grid_index = xy_to_grid_index(person_map_, short_minus_point.x, short_minus_point.y);
-
-                // すでに割り当てられているコストより大きければ更新
-                if(person_map_.data[grid_index] < short_minus_cost)
-                    person_map_.data[grid_index] = short_minus_cost;
-
-                // コストを割り当てたindexの最小値と最大値を更新
-                if(grid_index < min_index)
-                    min_index = grid_index;
-
-                if(grid_index > max_index)
-                    max_index = grid_index;
-            }
-
+                assign_cost_for_person_cost_map(short_minus_point.x, short_minus_point.y, short_minus_cost, min_index, max_index);
         }
 
     }
