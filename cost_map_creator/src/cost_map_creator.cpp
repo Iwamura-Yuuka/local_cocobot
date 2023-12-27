@@ -24,8 +24,8 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     // private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
     // subscriber
-    sub_current_people_states_ = nh_.subscribe("/selected_current_people_states", 1, &CostMapCreator::current_people_states_callback, this);
-    sub_future_people_states_ = nh_.subscribe("/future_people_states", 1, &CostMapCreator::future_people_states_callback, this);
+    sub_current_people_states_ = nh_.subscribe("/selected_current_people_states", 1, &CostMapCreator::current_people_states_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_future_people_states_ = nh_.subscribe("/future_people_states", 1, &CostMapCreator::future_people_states_callback, this, ros::TransportHints().reliable().tcpNoDelay());
 
     // publisher
     pub_cost_map_ = nh_.advertise<nav_msgs::OccupancyGrid>("/cost_map", 1);
@@ -71,6 +71,7 @@ void CostMapCreator::future_people_states_callback(const pedestrian_msgs::People
     future_people_states_.emplace(msg);
     // future_people_states_ = msg;
     flag_future_people_states_ = true;
+
 }
 
 // マップの初期化(すべて「未知」にする)
@@ -461,16 +462,16 @@ void CostMapCreator::create_cost_map()
 
     const auto current_people = current_people_states_.front();
     const auto future_people = future_people_states_.front();
+    // bool flag2 = true;
     
     // 予測した歩行者の将来位置に対して走行コストを計算
     for(const auto& future_person : future_people->people_states)
     {
-        // パーソンマップの初期化
+        // ROS_INFO_STREAM("--- future ---");
+        // ROS_INFO_STREAM("id : " << future_person.id);
+        // ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
+        // ROS_INFO_STREAM("linear_x" << future_person.twist.linear.x);
 
-        ROS_INFO_STREAM("--- future ---");
-        ROS_INFO_STREAM("id : " << future_person.id);
-        ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
-        ROS_INFO_STREAM("linear_x" << future_person.twist.linear.x);
         // 対応する現在の歩行者情報を探索
         for(const auto& person : current_people->people_states)
         {
@@ -480,11 +481,11 @@ void CostMapCreator::create_cost_map()
                 flag_ped_data_matching_ = true;
 
                 const double speed = calc_speed(current_person.twist.linear.x, current_person.twist.linear.y);
-                ROS_INFO_STREAM("--- current ---");
-                ROS_INFO_STREAM("id : " << current_person.id);
-                ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
-                ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
-                ROS_INFO_STREAM("speed : " << speed);
+                // ROS_INFO_STREAM("--- current ---");
+                // ROS_INFO_STREAM("id : " << current_person.id);
+                // ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
+                // ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
+                // ROS_INFO_STREAM("speed : " << speed);
 
                 // パーソンマップの初期化
                 init_map(person_map_);
@@ -536,6 +537,17 @@ void CostMapCreator::create_cost_map()
     // これをしないと，front() でデータを取得する際，同じデータしか取得できない
     current_people_states_.pop();
     future_people_states_.pop();
+    // while(!current_people_states_.empty())
+    // {
+    //     current_people_states_.pop();
+    //     ROS_INFO_STREAM("clean!");
+    // }
+
+    // while(!future_people_states_.empty())
+    // {
+    //     future_people_states_.pop();
+    //     ROS_INFO_STREAM("kirei!");
+    // }
 
     // // ロボットの位置を格納
     // tmp_robot_x_ = robot_odom_.pose.pose.position.x;
@@ -571,7 +583,7 @@ void CostMapCreator::process()
     {
         if((flag_current_people_states_ == true) && (flag_future_people_states_ == true))
         {
-            ROS_INFO_STREAM("get ped_states!");  // デバック用
+            //ROS_INFO_STREAM("get ped_states!");  // デバック用
             create_cost_map();
         }
 

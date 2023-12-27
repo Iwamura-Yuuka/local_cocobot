@@ -16,8 +16,8 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
     private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
     // subscriber
-    sub_ped_states_ = nh_.subscribe("/pedsim_simulator/simulated_agents", 1, &PedestrianStatePredictor::pedestrian_data_callback, this);
-    sub_robot_odom_ = nh_.subscribe("/robot_odom", 1, &PedestrianStatePredictor::robot_odom_callback, this);
+    sub_ped_states_ = nh_.subscribe("/pedsim_simulator/simulated_agents", 1, &PedestrianStatePredictor::pedestrian_data_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_robot_odom_ = nh_.subscribe("/robot_odom", 1, &PedestrianStatePredictor::robot_odom_callback, this, ros::TransportHints().reliable().tcpNoDelay());
 
     // publisher
     pub_selected_current_people_states_ = nh_.advertise<pedestrian_msgs::PeopleStates>("/selected_current_people_states", 1);
