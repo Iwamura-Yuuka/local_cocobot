@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Map1
+        - /PoseArray1
       Splitter Ratio: 0.5
     Tree Height: 878
   - Class: rviz/Selection
@@ -62,6 +63,23 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Alpha: 1
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.10000000149011612
+      Axes Radius: 0.10000000149011612
+      Class: rviz/PoseArray
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
+      Name: PoseArray
+      Queue Size: 10
+      Shaft Length: 0.23000000417232513
+      Shaft Radius: 0.009999999776482582
+      Shape: Axes
+      Topic: /future_ped_poses
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 243; 243; 243
@@ -89,26 +107,20 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 22.106815338134766
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Field of View: 0.7853981852531433
-      Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.785398006439209
+      Scale: 71.52006530761719
       Target Frame: <Fixed Frame>
-      Yaw: 0.785398006439209
+      X: 0.26517772674560547
+      Y: -1.433548092842102
     Saved: ~
 Window Geometry:
   Displays:
@@ -126,5 +138,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 2514
-  X: 146
-  Y: 1409
+  X: 144
+  Y: 1422

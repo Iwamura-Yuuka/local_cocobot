@@ -10,7 +10,7 @@ hz: 10              # ループ周波数 [Hz]
 
 # frame_id
 people_frame: "base_footprint"     # 歩行者
-cost_map_frame: "baase_footprint"  # コストマップ
+cost_map_frame: "base_footprint"  # コストマップ
 # robot_frame: "odom"   # ロボット
 # people_frame: "odom"  # 歩行者
 
