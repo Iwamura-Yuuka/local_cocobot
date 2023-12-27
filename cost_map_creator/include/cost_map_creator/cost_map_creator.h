@@ -56,12 +56,12 @@ private:
     // int xy_to_grid_index(const double x, const double y);
     // double calc_y(const double x, const double a, const double b, const double theta);
     // void calc_cost(const pedestrian_msgs::PeopleStates& future_people);
-    void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person);
+    void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person, int& min_index, int& max_index);
+    void copy_cost(const int min_index, const int max_index);
     // void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
 
     // 引数なし関数
     // void init_map(nav_msgs::OccupancyGrid& map);
-    void copy_cost();
     void create_cost_map();
     // void create_person_cost_map();
 

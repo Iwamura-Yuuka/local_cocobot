@@ -61,7 +61,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
 void CostMapCreator::current_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
     current_people_states_.emplace(msg);
-    // current_people_states_ = msg;
     flag_current_people_states_ = true;
 }
 
@@ -69,7 +68,6 @@ void CostMapCreator::current_people_states_callback(const pedestrian_msgs::Peopl
 void CostMapCreator::future_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
     future_people_states_.emplace(msg);
-    // future_people_states_ = msg;
     flag_future_people_states_ = true;
 
 }
@@ -398,7 +396,7 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
 // }
 
 // 歩行者1人のみ考慮したコストマップを作成
-void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person)
+void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person, int& min_index, int& max_index)
 {
     // 走行コストの楕円の軸の長さを計算
     const double long_param = calc_ellipse_long_param(current_person);
@@ -433,7 +431,18 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
         if(is_in_map(person_map_, front_point.x, front_point.y))
         {
             const int grid_index = xy_to_grid_index(person_map_, front_point.x, front_point.y);
-            person_map_.data[grid_index] = front_long_cost;
+
+            // すでに割り当てられているコストより大きければ更新
+            if(person_map_.data[grid_index] < front_long_cost)
+                person_map_.data[grid_index] = front_long_cost;
+
+            // コストを割り当てたindexの最小値と最大値を更新
+            if(grid_index < min_index)
+                min_index = grid_index;
+
+            if(grid_index > max_index)
+                max_index = grid_index;
+
         }
 
         // 垂直方向に関しても探索
@@ -441,12 +450,10 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 }
 
 // person_map_のコストをコストマップにコピー
-void CostMapCreator::copy_cost()
+void CostMapCreator::copy_cost(const int min_index, const int max_index)
 {
-    const int size = cost_map_.info.width * cost_map_.info.height;
-
     // コストマップに現在割り当てられているコストより大きければ，コストを更新
-    for(int i=0; i<size; i++)
+    for(int i=min_index; i<=max_index; i++)
     {
         if(person_map_.data[i] > cost_map_.data[i])
             cost_map_.data[i] = person_map_.data[i];
@@ -490,11 +497,15 @@ void CostMapCreator::create_cost_map()
                 // パーソンマップの初期化
                 init_map(person_map_);
 
+                // コストを割り当てるindexの最小値と最大値を初期化
+                int min_index = cost_map_.info.width * cost_map_.info.height;  // マップのindexの最大値
+                int max_index = 0;                                             // マップのindexの最小値
+
                 // 歩行者1人のみ考慮したコストマップを作成
-                create_person_cost_map(current_person, future_person);
+                create_person_cost_map(current_person, future_person, min_index, max_index);
 
                 // person_map_のコストをコストマップにコピー
-                copy_cost();
+                copy_cost(min_index, max_index);
 
                 break;
             }
