@@ -48,6 +48,8 @@ private:
     bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);
     int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);
     int count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);
+    double calc_distance(const double person_x, const double person_y, const double x, const double y);
+    double calc_short_side_length(const double x, const double a, const double b);
     // void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);
     // double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);
     // void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, ros::Time now);
@@ -79,6 +81,7 @@ private:
     double weight_distance_;       // ロボットからの距離に関する項の重み定数
     double weight_speed_;       // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;         // 歩行者の歩く速さの最大値 [m/s]
+    double count_reso_;                   // コストを割り当てる際に計算する座標の刻み幅 [m]
     int min_cost_;              // 割り当てるコストの最小値
     // double predict_dist_border_;
     // double predict_time_resolution_;

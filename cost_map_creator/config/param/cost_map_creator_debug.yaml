@@ -6,7 +6,7 @@
 # visualize_future_people_poses: true   # 歩行者の将来位置（予測）
 
 # 制御周波数[Hz]
-hz: 10              # ループ周波数 [Hz]
+hz: 12              # ループ周波数 [Hz]
 
 # frame_id
 people_frame: "base_footprint"     # 歩行者
@@ -15,8 +15,8 @@ cost_map_frame: "base_footprint"  # コストマップ
 # people_frame: "odom"  # 歩行者
 
 # map
-map_size: 5.0    # マップの一辺の長さ [m]
-map_reso: 0.025  # マップの解像度 [m/cell]
+map_size: 8.0    # マップの一辺の長さ [m]
+map_reso: 0.05  # マップの解像度 [m/cell]
 
 # 楕円のサイズ
 ellipse_front_long_max: 1.0  # 楕円の長軸（歩行者の進行方向前方）の最大値 [m]
@@ -31,6 +31,7 @@ weight_velocity: 0.5         # 歩行者の速さに関する項
 ped_speed_max: 1.5           # 歩く速さの最大値 [m/s]
 
 # コストマップ
+count_reso: 0.02             # コストを割り当てる際に計算する座標の刻み幅 [m]
 min_cost: 10                 # 割り当てるコストの最小値
 
 # 予測範囲

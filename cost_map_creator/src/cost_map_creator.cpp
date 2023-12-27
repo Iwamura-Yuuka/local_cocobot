@@ -9,13 +9,14 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("people_frame", people_frame_, {"base_footprint"});
     private_nh_.param("cost_map_frame", cost_map_frame_, {"base_footprint"});
     private_nh_.param("map_size", map_size_, {5.0});
-    private_nh_.param("map_reso", map_reso_, {0.025});
+    private_nh_.param("map_reso", map_reso_, {0.05});
     private_nh_.param("ellipse_front_long_max", ellipse_front_long_max_, {1.0});
     private_nh_.param("ellipse_back_long_max", ellipse_back_long_max_, {0.5});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
+    private_nh_.param("count_reso", count_reso_, {0.02});
     private_nh_.param("min_cost", min_cost_, {10});
 
     // private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
@@ -159,14 +160,13 @@ int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double 
     return index_x + (index_y * cost_map_.info.width);
 }
 
-// 長軸方向のマスをカウント
+// マスをカウント
 int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta)
 {
-    const double count_reso = 0.01;      // 座標を計算する距離の刻み幅
     Coordinate next = {start_x, start_y};  // 計算後の座標格納用
 
-    next.x = start_x + (count_reso * cos(theta));
-    next.y = start_y + (count_reso * sin(theta));
+    next.x = start_x + (count_reso_ * cos(theta));
+    next.y = start_y + (count_reso_ * sin(theta));
 
     // グリッドのインデックスが変わったかの判定用（刻み幅）
     double change_reso_x = map_reso_;
@@ -197,7 +197,7 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
     int grid_counter = 0;
 
     // マスをカウント
-    for(double l=count_reso; l <= length; l+=count_reso)
+    for(double l=count_reso_; l <= length; l+=count_reso_)
     {
         // 座標を計算
         next.x = start_x + (l * cos(theta));
@@ -345,18 +345,23 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
     return grid_counter;
 }
 
+// 歩行者位置までの距離を計算
+double CostMapCreator::calc_distance(const double person_x, const double person_y, const double x, const double y)
+{
+    const double dx = x - person_x;
+    const double dy = y - person_y;
 
-// ロボットと歩行者の間の距離を計算
-// double CostMapCreator::calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y)
-// {
-//     const double dx = person_x - robot_x;
-//     const double dy = person_y - robot_y;
+    return hypot(dx, dy);
+}
 
-//     return hypot(dx, dy);
-// }
+// 長軸方向の位置から対応する短軸方向の長さを計算
+// a : 長軸の長さ　b : 短軸の長さ
+double CostMapCreator::calc_short_side_length(const double x, const double a, const double b)
+{
+    const double y = b * sqrt(1 - (pow(x, 2.0) / pow(a, 2.0)));
 
-
-
+    return y;
+}
 
 // 距離と角度からグリッドのインデックスを返す
 // int CostMapCreator::get_grid_index(const double dist, const double angle)
@@ -365,34 +370,6 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
 //     const double y = dist * sin(angle);
 
 //     return xy_to_grid_index(x, y);
-// }
-
-// 座標からグリッドのインデックスを返す
-// int CostMapCreator::xy_to_grid_index(const double x, const double y)
-// {
-//     const int index_x = int(round((x - cost_map_.info.origin.position.x) / cost_map_.info.resolution));
-//     const int index_y = int(round((y - cost_map_.info.origin.position.y) / cost_map_.info.resolution));
-
-//     return index_x + (index_y * cost_map_.info.width);
-// }
-
-// x座標から対応するy座標を計算
-// double CostMapCreator::calc_y(const double x, const double a, const double b, const double theta)
-// {
-//     // y = b / (sinθ+cosθ) * √(1-(x^2*(cosθ-sinθ)^2) / a^2)
-//     double y = b / (sin(theta)+cos(theta)) * sqrt(1 - (pow(x,2.0) * pow(cos(theta)-sin(theta),2.0) / pow(a,2.0)));
-    
-//     return y;
-// }
-
-// 走行コストを計算
-// void CostMapCreator::calc_cost(const pedestrian_msgs::PeopleStates& future_people)
-// {
-    
-
-
-
-
 // }
 
 // 歩行者1人のみ考慮したコストマップを作成
@@ -414,15 +391,15 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
         person_map_.data[grid_index] = 100;  // 占有にする
     }
 
-    // 長軸方向のグリッドを探索
-    std::vector<Coordinate> long_side;
-    const int grid_size = count_grid(long_side, future_person.pose.position.x, future_person.pose.position.y, ellipse_front_long, theta);
+    // 長軸方向(前)のグリッドを探索
+    std::vector<Coordinate> front_long_side;
+    const int front_long_grid_size = count_grid(front_long_side, future_person.pose.position.x, future_person.pose.position.y, ellipse_front_long, theta);
 
-    // 探索した長軸方向のグリッドにコストを割り当てる
-    const double front_long_cost_reso = (100 - min_cost_) / grid_size;
+    // 探索した長軸方向（前）のグリッドにコストを割り当てる
+    const double front_long_cost_reso = (100 - min_cost_) / front_long_grid_size;
     double front_long_cost = 100;
 
-    for(const auto& front_point : long_side)
+    for(const auto& front_point : front_long_side)
     {
         // コストを計算
         front_long_cost -= front_long_cost_reso;
@@ -445,7 +422,74 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 
         }
 
-        // 垂直方向に関しても探索
+        // 垂直方向の長さを計算
+        const double dist = calc_distance(future_person.pose.position.x, future_person.pose.position.y, front_point.x, front_point.y);
+        const double short_side_length = calc_short_side_length(dist, ellipse_front_long, ellipse_short);
+
+        // 垂直方向（上）に関して探索
+        std::vector<Coordinate> short_side_plus;
+        const int short_plus_grid_size = count_grid(short_side_plus, front_point.x, front_point.y, short_side_length, theta-(M_PI/2));
+
+        // 探索した短軸方向（上）のグリッドにコストを割り当てる
+        const double short_plus_cost_reso = (front_long_cost - min_cost_) / short_plus_grid_size;
+        double short_plus_cost = front_long_cost;
+
+        for(const auto& short_plus_point : short_side_plus)
+        {
+            // コストを計算
+            short_plus_cost -= short_plus_cost_reso;
+
+            // 対応するグリッドがマップ内であれば，コストを割り当て
+            if(is_in_map(person_map_, short_plus_point.x, short_plus_point.y))
+            {
+                const int grid_index = xy_to_grid_index(person_map_, short_plus_point.x, short_plus_point.y);
+
+                // すでに割り当てられているコストより大きければ更新
+                if(person_map_.data[grid_index] < short_plus_cost)
+                    person_map_.data[grid_index] = short_plus_cost;
+
+                // コストを割り当てたindexの最小値と最大値を更新
+                if(grid_index < min_index)
+                    min_index = grid_index;
+
+                if(grid_index > max_index)
+                    max_index = grid_index;
+            }
+
+        }
+
+        // 垂直方向（下）に関して探索
+        std::vector<Coordinate> short_side_minus;
+        const int short_minus_grid_size = count_grid(short_side_minus, front_point.x, front_point.y, short_side_length, theta+(M_PI/2));
+
+        // 探索した短軸方向（上）のグリッドにコストを割り当てる
+        const double short_minus_cost_reso = (front_long_cost - min_cost_) / short_minus_grid_size;
+        double short_minus_cost = front_long_cost;
+
+        for(const auto& short_minus_point : short_side_minus)
+        {
+            // コストを計算
+            short_minus_cost -= short_minus_cost_reso;
+
+            // 対応するグリッドがマップ内であれば，コストを割り当て
+            if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
+            {
+                const int grid_index = xy_to_grid_index(person_map_, short_minus_point.x, short_minus_point.y);
+
+                // すでに割り当てられているコストより大きければ更新
+                if(person_map_.data[grid_index] < short_minus_cost)
+                    person_map_.data[grid_index] = short_minus_cost;
+
+                // コストを割り当てたindexの最小値と最大値を更新
+                if(grid_index < min_index)
+                    min_index = grid_index;
+
+                if(grid_index > max_index)
+                    max_index = grid_index;
+            }
+
+        }
+
     }
 }
 
@@ -522,26 +566,6 @@ void CostMapCreator::create_cost_map()
     // pedestrian_msgs::PeopleStates future_people;
     // ros::Time now = ros::Time::now();
 
-    // // マップの初期化
-    // init_map();
-
-    // // 歩行者データを取得
-    // get_ped_data(current_people, now);
-
-    // // 歩行者の現在位置の可視化
-    // if(visualize_current_people_poses_)
-    //     visualize_people_pose(current_people, pub_current_ped_poses_, now);
-    
-    // // 歩行者の将来位置を予測
-    // predict_future_ped_states(current_people, future_people, now);
-
-    // // 歩行者の将来位置（予測）の可視化
-    // if(visualize_future_people_poses_)
-    //     visualize_people_pose(future_people, pub_future_ped_poses_, now);
-
-    // // 走行コストを計算
-    // calc_cost(future_people);
-
     pub_cost_map_.publish(cost_map_);
 
     // current_people_states_とfuture_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
@@ -564,26 +588,6 @@ void CostMapCreator::create_cost_map()
     // tmp_robot_x_ = robot_odom_.pose.pose.position.x;
     // tmp_robot_y_ = robot_odom_.pose.pose.position.y;
 }
-
-// 歩行者の位置情報を可視化
-// void CostMapCreator::visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now)
-// {
-//     geometry_msgs::Pose person_pose;        // 歩行者1人の位置情報
-//     geometry_msgs::PoseArray people_poses;  // 全歩行者の位置情報
-//     people_poses.header.stamp = now;
-//     people_poses.header.frame_id  = people_frame_;
-
-//     // msg型を pedestrian_msgs/PeopleStates から geometry_msgs/PoseArray に変更
-//     for(const auto& person : people.people_states)
-//     {
-//         person_pose.position.x = person.pose.position.x;
-//         person_pose.position.y = person.pose.position.y;
-
-//         people_poses.poses.push_back(person_pose);
-//     }
-
-//     pub_people_poses.publish(people_poses);
-// }
 
 //メイン文で実行する関数
 void CostMapCreator::process()
