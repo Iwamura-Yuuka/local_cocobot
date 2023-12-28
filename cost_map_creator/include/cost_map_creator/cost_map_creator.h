@@ -59,6 +59,8 @@ private:
     // int xy_to_grid_index(const double x, const double y);
     // double calc_y(const double x, const double a, const double b, const double theta);
     // void calc_cost(const pedestrian_msgs::PeopleStates& future_people);
+    void search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, int& min_index, int& max_index);
+    void search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, int& min_index, int& max_index);
     void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person, int& min_index, int& max_index);
     void copy_cost(const int min_index, const int max_index);
     // void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);
