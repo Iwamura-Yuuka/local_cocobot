@@ -19,11 +19,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("count_reso", count_reso_, {0.02});
     private_nh_.param("min_cost", min_cost_, {10});
 
-    // private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
-    // private_nh_.param("predict_time_resolution", predict_time_resolution_, {2.5});
-    // private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
-    // private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
-
     // subscriber
     sub_current_people_states_ = nh_.subscribe("/selected_current_people_states", 1, &CostMapCreator::current_people_states_callback, this, ros::TransportHints().reliable().tcpNoDelay());
     sub_future_people_states_ = nh_.subscribe("/future_people_states", 1, &CostMapCreator::future_people_states_callback, this, ros::TransportHints().reliable().tcpNoDelay());
@@ -488,11 +483,16 @@ void CostMapCreator::create_cost_map()
 
     const auto current_people = current_people_states_.front();
     const auto future_people = future_people_states_.front();
-    // bool flag2 = true;
+    
+    // デバック用にタイムスタンプを表示
+    // ROS_INFO_STREAM("--- TimeStamp ---");
+    // ROS_INFO_STREAM("sec : " << future_people->header.stamp.sec);
+    // ROS_INFO_STREAM("nsec : " << future_people->header.stamp.nsec);
     
     // 予測した歩行者の将来位置に対して走行コストを計算
     for(const auto& future_person : future_people->people_states)
     {
+        // デバック用に歩行者の将来情報を表示
         // ROS_INFO_STREAM("--- future ---");
         // ROS_INFO_STREAM("id : " << future_person.id);
         // ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
@@ -506,12 +506,13 @@ void CostMapCreator::create_cost_map()
                 current_person = person;
                 flag_ped_data_matching_ = true;
 
-                const double speed = calc_speed(current_person.twist.linear.x, current_person.twist.linear.y);
+                // デバック用に歩行者の将来情報を表示
                 // ROS_INFO_STREAM("--- current ---");
                 // ROS_INFO_STREAM("id : " << current_person.id);
                 // ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
                 // ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
-                // ROS_INFO_STREAM("speed : " << speed);
+
+                const double speed = calc_speed(current_person.twist.linear.x, current_person.twist.linear.y);
 
                 // パーソンマップの初期化
                 init_map(person_map_);
