@@ -6,14 +6,12 @@
     <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator_debug.yaml"/>
 
     <!-- node launch -->
-    <!-- <node pkg="pedestrian_state_predictor" type="pedestrian_state_predictor_node" name="pedestrian_state_predictor" output="screen"> -->
     <node pkg="pedestrian_state_predictor" type="pedestrian_state_predictor_node" name="pedestrian_state_predictor">
         <rosparam command="load" file="$(arg pedestrian_state_predictor_settings)"/>
         <remap from="/robot_odom" to="/sq2_ccv/diff_drive_steering_controller/odom"/>
     </node>
 
     <node pkg="cost_map_creator" type="cost_map_creator_node" name="cost_map_creator" output="screen">
-    <!-- <node pkg="cost_map_creator" type="cost_map_creator_node" name="cost_map_creator"> -->
         <rosparam command="load" file="$(arg cost_map_creator_settings)"/>
     </node>
 

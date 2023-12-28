@@ -4,8 +4,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
 {
     // param
     private_nh_.param("hz", hz_, {10});
-    // private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
-    // private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
     private_nh_.param("people_frame", people_frame_, {"base_footprint"});
     private_nh_.param("cost_map_frame", cost_map_frame_, {"base_footprint"});
     private_nh_.param("map_size", map_size_, {5.0});
@@ -340,7 +338,7 @@ int CostMapCreator::count_grid(std::vector<Coordinate>& side, const double start
     return grid_counter;
 }
 
-// person_cost_mapにコストを割り当てる
+// person_map_にコストを割り当てる
 void CostMapCreator::assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index)
 {
     const int grid_index = xy_to_grid_index(person_map_, x, y);
@@ -374,15 +372,6 @@ double CostMapCreator::calc_short_side_length(const double x, const double a, co
 
     return y;
 }
-
-// 距離と角度からグリッドのインデックスを返す
-// int CostMapCreator::get_grid_index(const double dist, const double angle)
-// {
-//     const double x = dist * cos(angle);
-//     const double y = dist * sin(angle);
-
-//     return xy_to_grid_index(x, y);
-// }
 
 // 長軸方向のグリッドを探索
 void CostMapCreator::search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, int& min_index, int& max_index)
@@ -497,7 +486,47 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 
     // 短軸方向（下）のグリッドを探索
     search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+(M_PI/2), ellipse_short, min_index, max_index);
-    
+}
+
+// person_map_の穴を埋める
+void CostMapCreator::fix_person_cost_map(const int min_index, const int max_index)
+{
+    const int w = cost_map_.info.width;
+
+    //左右もしくは上下のマスにコストが割り当てられているのに，現在のマスにコストが割り当てられていない場合は修正
+    for(int i=min_index+1; i<max_index; i++)
+    {
+        if(person_map_.data[i] < 0)  // 「未知」（-1）の場合
+        {
+            bool flag_in_map = false;  // falseのときはセグフォ
+        
+            // セグフォしないかのチェック
+            if((i-w >= 0) && (i+w < cost_map_.info.width * cost_map_.info.height))
+                flag_in_map = true;  // セグフォしてない
+
+            if(flag_in_map)
+            {
+                if((person_map_.data[i-1] > 0) && (person_map_.data[i+1] > 0))  // 上下方向
+                {
+                    // 上下のマスに割り当てられているコストの平均値を割り当てる
+                    person_map_.data[i] = (person_map_.data[i-1] + person_map_.data[i+1]) / 2;
+                }
+                else if((person_map_.data[i-w] > 0) && (person_map_.data[i+w] > 0))  // 左右方向
+                {
+                    // 左右のマスに割り当てられているコストの平均値を割り当てる
+                    person_map_.data[i] = (person_map_.data[i-w] + person_map_.data[i+w]) / 2;
+                }
+            }
+            else
+            {
+                if((person_map_.data[i-1] > 0) && (person_map_.data[i+1] > 0))  // 上下方向
+                {
+                    // 上下のマスに割り当てられているコストの平均値を割り当てる
+                    person_map_.data[i] = (person_map_.data[i-1] + person_map_.data[i+1]) / 2;
+                }
+            }
+        }
+    }
 }
 
 // person_map_のコストをコストマップにコピー
@@ -511,6 +540,7 @@ void CostMapCreator::copy_cost(const int min_index, const int max_index)
     }
 }
 
+// コストマップを作成
 void CostMapCreator::create_cost_map()
 {
     // コストマップの初期化
@@ -549,8 +579,6 @@ void CostMapCreator::create_cost_map()
                 // ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
                 // ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
 
-                // const double speed = calc_speed(current_person.twist.linear.x, current_person.twist.linear.y);
-
                 // パーソンマップの初期化
                 init_map(person_map_);
 
@@ -560,6 +588,9 @@ void CostMapCreator::create_cost_map()
 
                 // 歩行者1人のみ考慮したコストマップを作成
                 create_person_cost_map(current_person, future_person, min_index, max_index);
+
+                // person_map_の穴を埋める
+                fix_person_cost_map(min_index, max_index);
 
                 // person_map_のコストをコストマップにコピー
                 copy_cost(min_index, max_index);
@@ -593,14 +624,12 @@ void CostMapCreator::process()
     {
         if((flag_current_people_states_ == true) && (flag_future_people_states_ == true))
         {
-            //ROS_INFO_STREAM("get ped_states!");  // デバック用
             create_cost_map();
         }
 
         // msgの受け取り判定用flagをfalseに戻す
         flag_current_people_states_ = false;
         flag_future_people_states_ = false;
-        // flag_robot_odom_ = false;
 
         ros::spinOnce();
         loop_rate.sleep();
