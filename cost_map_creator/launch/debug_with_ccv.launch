@@ -2,10 +2,14 @@
 <launch>
     <!-- config file path  -->
     <arg name="rviz_settings" default="$(find cost_map_creator)/config/rviz/debug_with_ccv.rviz"/>
+    <arg name="straight_line_creator_settings" default="$(find straight_line_creator)/config/param/straight_line_creator_debug.yaml"/>
     <arg name="pedestrian_state_predictor_settings" default="$(find pedestrian_state_predictor)/config/param/pedestrian_state_predictor_debug.yaml"/>
     <arg name="cost_map_creator_settings" default="$(find cost_map_creator)/config/param/cost_map_creator_debug.yaml"/>
 
     <!-- node launch -->
+    <node pkg="straight_line_creator" type="straight_line_creator_node" name="straight_line_creator">
+        <rosparam command="load" file="$(arg straight_line_creator_settings)"/>
+    </node>
     <node pkg="pedestrian_state_predictor" type="pedestrian_state_predictor_node" name="pedestrian_state_predictor">
         <rosparam command="load" file="$(arg pedestrian_state_predictor_settings)"/>
         <remap from="/robot_odom" to="/sq2_ccv/diff_drive_steering_controller/odom"/>
@@ -19,24 +23,6 @@
     <node pkg="rviz" type="rviz" name="planner_rviz" args="-d $(arg rviz_settings)"/>
     
     <!-- =============== Move ccv =============== -->
-    <node name="test_path_generator" pkg="steering_path_planner" type="test_path_creator">
-        <param name="world_frame_id" value="odom"/>
-        <param name="resolution" value="0.05"/>
-        <param name="course_length" value="20.0"/>
-        <param name="init_x" value="0.0"/><!-- -4.957 -->
-        <param name="init_y" value="0.0"/><!-- 1.886 -->
-        <param name="init_theta" value="1.57"/><!-- -0.355 -->
-        <param name="A1" value="0.5"/>
-        <param name="omega1" value="85"/>
-        <param name="delta1" value="220"/>
-        <param name="A2" value="0.0"/>
-        <param name="omega2" value="0"/>
-        <param name="delta2" value="0"/>
-        <param name="A3" value="0.0"/>
-        <param name="omega3" value="0"/>
-        <param name="delta3" value="0"/>
-    </node>
-
     <node name="pure_pursuit_steering" pkg="ccv_pure_pursuit_steering" type="ccv_pure_pursuit_steering">
         <param name="max_target_velocity" value="1.2"/>
         <param name="max_steering_angle" value="20.0"/>
@@ -47,7 +33,7 @@
         <param name="read_marker" value="false"/>
         <param name="world_frame_id" value="odom"/>
         <param name="robot_frame_id" value="base_footprint"/>
-        <remap from="/predicted_path" to="/local_path"/>
+        <remap from="/predicted_path" to="/global_path"/>
         <remap from="/local/cmd_vel" to="/sq2_ccv/diff_drive_steering_controller/cmd_vel"/>
     </node>
 
