@@ -1,0 +1,16 @@
+# デバック用
+
+# 制御周波数[Hz]
+hz: 10              # ループ周波数 [Hz]
+
+# frame_id
+path_frame: "odom"  # path
+
+# 初期位置
+init_x: 0.0         # x座標[m]
+init_y: 0.0         # y座標[m]
+init_theta: 1.57    # 生成する軌道の向き [rad]
+
+# path関連
+cource_length: 25   # 長さ [m]
+resolution: 0.05    # 軌道生成時の刻み幅 [m]
