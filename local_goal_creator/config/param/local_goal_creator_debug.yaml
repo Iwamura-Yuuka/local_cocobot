@@ -1,0 +1,14 @@
+# デバック用
+
+# 制御周波数[Hz]
+hz: 10                          # ループ周波数 [Hz]
+
+# frame_id
+goal_frame: "odom"               # local_goal
+
+# local_goal
+dist_to_update_local_goal: 5.0  # local_goalを更新する基準となるロボットとlocal_goalの距離 [m]
+
+# global_path
+global_path_index: 100          # 探索し始めるglobal_pathのインデックス
+index_step: 5                   # 1回で更新するインデックス数
