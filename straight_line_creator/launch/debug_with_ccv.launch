@@ -2,7 +2,6 @@
 <launch>
     <!-- config file path  -->
     <arg name="rviz_settings" default="$(find straight_line_creator)/config/rviz/debug_with_ccv.rviz"/>
-    <!-- <arg name="rviz_settings" default="$(find pedestrian_state_predictor)/config/rviz/debug_with_ccv.rviz"/> -->
     <arg name="straight_line_creator_settings" default="$(find straight_line_creator)/config/param/straight_line_creator_debug.yaml"/>
 
     <!-- node launch -->

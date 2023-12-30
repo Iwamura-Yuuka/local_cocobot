@@ -7,8 +7,8 @@ hz: 10              # ループ周波数 [Hz]
 path_frame: "odom"  # path
 
 # 初期位置
-init_x: 0.0         # x座標[m]
-init_y: 0.0         # y座標[m]
+init_x: 0.0         # x座標 [m]
+init_y: 0.0         # y座標 [m]
 init_theta: 1.57    # 生成する軌道の向き [rad]
 
 # path関連
