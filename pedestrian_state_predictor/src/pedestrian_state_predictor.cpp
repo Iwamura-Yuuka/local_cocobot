@@ -27,7 +27,6 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
     pub_current_ped_poses_ = nh_.advertise<geometry_msgs::PoseArray>("/current_ped_poses", 1);
     pub_selected_current_ped_poses_ = nh_.advertise<geometry_msgs::PoseArray>("/selected_current_ped_poses", 1);
     pub_future_ped_poses_ = nh_.advertise<geometry_msgs::PoseArray>("/future_ped_poses", 1);
-
 }
 
 // 歩行者データのコールバック関数
