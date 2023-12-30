@@ -86,4 +86,4 @@ private:
     nav_msgs::Odometry robot_odom_;                            // ロボットの位置情報
 };
 
-#endif // PEDESTRIAN_STATE_PREDICTOR_H
+#endif  // PEDESTRIAN_STATE_PREDICTOR_H
