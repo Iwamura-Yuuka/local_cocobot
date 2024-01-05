@@ -14,7 +14,6 @@
         <rosparam command="load" file="$(arg pedestrian_state_predictor_settings)"/>
         <remap from="/robot_odom" to="/sq2_ccv/diff_drive_steering_controller/odom"/>
     </node>
-
     <node pkg="cost_map_creator" type="cost_map_creator_node" name="cost_map_creator" output="screen">
         <rosparam command="load" file="$(arg cost_map_creator_settings)"/>
     </node>
@@ -51,7 +50,7 @@
     <arg name="simulation_factor" default="1.0"/> <!-- Speed up -->
     <arg name="update_rate" default="25.0"/> <!-- Hz -->
     <arg name="ns" default=""/>
-    <arg name="robot_description" default="$(find experimental_package)/models/zoe/urdf/$(arg ns)/zoe.urdf"/>
+    <arg name="robot_description" default="$(find sq2_ccv_description)/robot/sq2_ccv.urdf"/>
 
     <arg name="pose_initial_x" default="0.0"/>
     <arg name="pose_initial_y" default="-20.0"/>

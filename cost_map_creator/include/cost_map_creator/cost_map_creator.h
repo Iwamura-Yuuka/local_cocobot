@@ -1,4 +1,3 @@
-
 #ifndef COST_MAP_CREATOR_H
 #define COST_MAP_CREATOR_H
 

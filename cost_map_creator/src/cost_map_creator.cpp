@@ -379,8 +379,14 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
     std::vector<Coordinate> long_side;
     const int long_grid_size = count_grid(long_side, person_x, person_y, ellipse_long_length, theta);
 
+    double long_grid_size2;  // ゼロ割を防ぐためのもの
+    if(long_grid_size == 0)
+        long_grid_size2 = 1;
+    else
+        long_grid_size2 = long_grid_size;
+
     // 探索した長軸方向（前）のグリッドにコストを割り当てる
-    const double long_cost_reso = (100 - min_cost_) / long_grid_size;
+    const double long_cost_reso = (100 - min_cost_) / long_grid_size2;
     double long_cost = 100;
 
     for(const auto& long_side_point : long_side)
@@ -441,8 +447,14 @@ void CostMapCreator::search_short_side_grid(const double person_x, const double 
     std::vector<Coordinate> short_side;
     const int short_grid_size = count_grid(short_side, person_x, person_y, ellipse_short_length, theta);
 
+    double short_grid_size2;  // ゼロ割を防ぐためのもの
+    if(short_grid_size == 0)
+        short_grid_size2 = 1;
+    else
+        short_grid_size2 = short_grid_size;
+
     // 探索した長軸方向（前）のグリッドにコストを割り当てる
-    const double short_cost_reso = (100 - min_cost_) / short_grid_size;
+    const double short_cost_reso = (100 - min_cost_) / short_grid_size2;
     double short_cost = 100;
 
     for(const auto& short_side_point : short_side)
