@@ -15,7 +15,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
     private_nh_.param("count_reso", count_reso_, {0.02});
-    private_nh_.param("min_cost", min_cost_, {10});
+    private_nh_.param("min_cost", min_cost_, {10.0});
 
     // subscriber
     sub_current_people_states_ = nh_.subscribe("/selected_current_people_states", 1, &CostMapCreator::current_people_states_callback, this, ros::TransportHints().reliable().tcpNoDelay());

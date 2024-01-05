@@ -65,7 +65,7 @@ private:
     double weight_speed_;            // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;           // 歩行者の歩く速さの最大値 [m/s]
     double count_reso_;              // コストを割り当てる際に計算する座標の刻み幅 [m]
-    int min_cost_;                   // 割り当てるコストの最小値
+    double min_cost_;                   // 割り当てるコストの最小値
 
     // msgの受け取り判定用
     bool flag_current_people_states_ = false;

@@ -1,0 +1,22 @@
+# 制御周波数[Hz]
+hz: 12              # ループ周波数 [Hz]
+
+# frame_id
+path_frame: "base_footprint"     # 歩行者
+
+goal_tolerance: 0.5
+
+max_vel: 1.2
+max_yawrate: 1.0
+
+# CCV関連
+max_steer_angle: 20
+tread: 0.5
+
+path_reso: 0.05
+theta_reso: 0.001
+search_step: 10
+
+weight_heading: 0.1
+weight_cost_map: 0.9
+min_cost: 30.0
