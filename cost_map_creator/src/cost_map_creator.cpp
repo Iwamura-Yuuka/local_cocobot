@@ -150,7 +150,7 @@ int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double 
     const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
     const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
 
-    return index_x + (index_y * cost_map_.info.width);
+    return index_x + (index_y * map.info.width);
 }
 
 // マスをカウント
