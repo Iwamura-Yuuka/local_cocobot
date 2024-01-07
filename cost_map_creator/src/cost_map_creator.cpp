@@ -9,8 +9,11 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("map_size", map_size_, {5.0});
     private_nh_.param("map_reso", map_reso_, {0.05});
     private_nh_.param("ellipse_front_long_max", ellipse_front_long_max_, {1.0});
+    private_nh_.param("ellipse_front_long_min", ellipse_front_long_min_, {0.5});
     private_nh_.param("ellipse_back_long_max", ellipse_back_long_max_, {0.5});
+    private_nh_.param("ellipse_back_long_min", ellipse_back_long_min_, {0.3});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
+    private_nh_.param("ellipse_short_min", ellipse_short_min_, {0.3});
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
@@ -473,9 +476,9 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
 {
     // 走行コストの楕円の軸の長さを計算
     const double long_param = calc_ellipse_long_param(current_person);
-    const double ellipse_front_long = ellipse_front_long_max_ * long_param;                                                                      // 楕円の長軸（前方）
-    const double ellipse_back_long = ellipse_back_long_max_ * long_param;                                                                        // 楕円の長軸（後方）
-    const double ellipse_short = ellipse_short_max_ * calc_ellipse_short_param(current_person.pose.position.x, current_person.pose.position.y);  // 楕円の短軸
+    const double ellipse_front_long = ellipse_front_long_min_ + (ellipse_front_long_max_ - ellipse_front_long_min_) * long_param;                                                                      // 楕円の長軸（前方）
+    const double ellipse_back_long = ellipse_back_long_min_ + (ellipse_back_long_max_- ellipse_back_long_min_) * long_param;                                                                        // 楕円の長軸（後方）
+    const double ellipse_short = ellipse_short_min_ + (ellipse_short_max_ - ellipse_short_min_) * calc_ellipse_short_param(current_person.pose.position.x, current_person.pose.position.y);  // 楕円の短軸
 
     // 歩行者の進行方向を計算
     const double theta = calc_direction(current_person.twist.linear.x, current_person.twist.linear.y);

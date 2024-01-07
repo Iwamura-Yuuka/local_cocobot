@@ -59,8 +59,11 @@ private:
     double map_size_;                // マップの一辺の長さ [m]
     double map_reso_;                // マップの解像度 [m/cell]
     double ellipse_front_long_max_;  // 走行コストの楕円の長軸（前方）の最大値 [m]
+    double ellipse_front_long_min_;  // 走行コストの楕円の長軸（前方）の最小値 [m]
     double ellipse_back_long_max_;   // 走行コストの楕円の長軸（後方）の最大値 [m]
+    double ellipse_back_long_min_;   // 走行コストの楕円の長軸（後方）の最小値 [m]
     double ellipse_short_max_;       // 走行コストの楕円の短軸の最大値 [m]
+    double ellipse_short_min_;       // 走行コストの楕円の短軸の最小値 [m]
     double weight_distance_;         // ロボットからの距離に関する項の重み定数
     double weight_speed_;            // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;           // 歩行者の歩く速さの最大値 [m/s]

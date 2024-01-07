@@ -8,6 +8,7 @@ Panels:
         - /Status1
         - /Map1
         - /PoseArray1
+        - /Axes1
       Splitter Ratio: 0.5
     Tree Height: 878
   - Class: rviz/Selection
@@ -80,6 +81,15 @@ Visualization Manager:
       Topic: /future_ped_poses
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.5
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: base_footprint
+      Show Trail: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 243; 243; 243
@@ -117,10 +127,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 71.52006530761719
+      Scale: 76.69164276123047
       Target Frame: <Fixed Frame>
-      X: 0.26517772674560547
-      Y: -1.433548092842102
+      X: 4.0269670486450195
+      Y: -1.351675271987915
     Saved: ~
 Window Geometry:
   Displays:
@@ -139,4 +149,4 @@ Window Geometry:
     collapsed: false
   Width: 2514
   X: 144
-  Y: 1348
+  Y: 1274
