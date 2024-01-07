@@ -17,16 +17,9 @@ LocalPathPlanner::LocalPathPlanner():private_nh_("~")
     private_nh_.param("weight_heading", weight_heading_, {0.1});
     private_nh_.param("weight_cost_map", weight_cost_map_, {0.9});
     private_nh_.param("min_cost", min_cost_, {10.0});
-
-    // private_nh_.param("dt", dt_, {0.1});
     private_nh_.param("tmp_x", tmp_x_, {0.0});
     private_nh_.param("tmp_y", tmp_y_, {0.0});
     private_nh_.param("tmp_yaw", tmp_yaw_, {0.0});
-
-    // private_nh_.param("path_frame", path_frame_, {"odom"});
-    // private_nh_.param("dist_to_update_local_goal", dist_to_update_local_goal_, {5.0});
-    // private_nh_.param("global_path_index", global_path_index_, {100});
-    // private_nh_.param("index_step", index_step_, {5});
 
     //Subscriber
     sub_cost_map_ = nh_.subscribe("/cost_map", 1, &LocalPathPlanner::cost_map_callback, this, ros::TransportHints().reliable().tcpNoDelay());
@@ -40,7 +33,6 @@ LocalPathPlanner::LocalPathPlanner():private_nh_("~")
 void LocalPathPlanner::cost_map_callback(const nav_msgs::OccupancyGridConstPtr& msg)
 {
     cost_map_ = *msg;
-    // ROS_INFO_STREAM("get cost_map!!");
     flag_cost_map_ = true;
 }
 
@@ -52,7 +44,6 @@ void LocalPathPlanner::local_goal_callback(const geometry_msgs::PointStampedCons
     try
     {
         transform = tf_buffer_.lookupTransform(path_frame_, goal_frame_, ros::Time(0));
-        // ROS_INFO_STREAM("get local_goal!!");
         flag_local_goal_ = true;
     }
     catch(tf2::TransformException& ex)
@@ -75,11 +66,9 @@ double LocalPathPlanner::calc_rad()
     const double x = max_vel_ * cos(steer_angle) + tread_ / 2;
     const double y = max_vel_ * sin(steer_angle);
     const double theta = atan2(y, x);
-    // ROS_INFO_STREAM("theta : " << theta);
 
     // 旋回で変わる方位の最大値を計算
     const double  yaw = max_yawrate_ / max_vel_ * path_reso_;
-    // ROS_INFO_STREAM("yaw : " << yaw);
 
     // 2つの合計
     const double max_rad = theta + yaw;
@@ -94,8 +83,6 @@ bool LocalPathPlanner::is_goal_check(const double x, const double y)
     double dx = local_goal_.point.x - x;
     double dy = local_goal_.point.y - y;
     double dist_to_goal = hypot(dx, dy);
-
-    // ROS_INFO_STREAM("dist_to_goal : " << dist_to_goal);
 
     if(dist_to_goal > goal_tolerance_)
         return false;
@@ -211,12 +198,10 @@ void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nod
 
         // 軌跡に対する評価値を計算
         double score = calc_evaluation(traj);
-        // ROS_INFO_STREAM("score : " << score);
 
         //評価値が一番大きいデータの探索
         if(score > max_score)
         {
-            // ROS_INFO_STREAM("update!!!");
             max_score = score;
 
             opt_x = traj[0].x;
@@ -232,7 +217,6 @@ void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nod
     opt_node.yaw = opt_yaw;
     nodes.push_back(opt_node);
 }
-
 
 // 目標軌道を生成
 void LocalPathPlanner::create_path(const double max_rad)
@@ -275,23 +259,16 @@ void LocalPathPlanner::create_path(const double max_rad)
         tmp_y_ = nodes.back().y;
         tmp_yaw_ = nodes.back().yaw;
 
-        // ROS_INFO_STREAM("tmp_x_ : " << tmp_x_);
-        // ROS_INFO_STREAM("tmp_y_ : " << tmp_y_);
-        // ROS_INFO_STREAM("tmp_yaw_ : " << tmp_yaw_);
-
         step_counter++;
-        // ROS_INFO_STREAM("step_counter : " << step_counter);
     }
     
     // 探索し終わったノード情報から目標軌道を生成
-    // ROS_INFO_STREAM("----- transform_node_to_path start -----");
     transform_node_to_path(nodes, path);
-    // ROS_INFO_STREAM("----- transform_node_to_path finish -----");
 
     pub_local_path_.publish(path);
 }
 
-// 
+// ノード情報からパスを生成
 void LocalPathPlanner::transform_node_to_path(const std::vector<State>& nodes, nav_msgs::Path& path)
 {
     geometry_msgs::PoseStamped pose;
@@ -304,7 +281,6 @@ void LocalPathPlanner::transform_node_to_path(const std::vector<State>& nodes, n
         path.poses.push_back(pose);
     }
 }
-
 
 //メイン文で実行する関数
 void LocalPathPlanner::process()
@@ -319,7 +295,7 @@ void LocalPathPlanner::process()
     {
         if((flag_cost_map_ == true) && (flag_local_goal_ == true))
         {
-            ROS_INFO_STREAM("get map & local_goal!!");
+            // ROS_INFO_STREAM("get map & local_goal!!");
             create_path(max_rad);
         }
 
