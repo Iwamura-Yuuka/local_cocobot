@@ -8,6 +8,9 @@
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2/utils.h>
 
 // ===== 構造体 =====
 struct State
@@ -49,6 +52,7 @@ private:
     int hz_;                         // ループ周波数 [Hz]
     // double dt_;                      // 微小時間 [s]
     std::string path_frame_;  // 生成するpathのframe_id
+    std::string goal_frame_;  // local_goalのframe_id
     double goal_tolerance_;   // local_goal_に対する許容誤差 [m]
     double max_vel_;          // 最高並進速度 [m/s]
     double max_yawrate_;      // 最高旋回速度 [rad/s]
@@ -84,6 +88,9 @@ private:
 
     // Publisher
     ros::Publisher pub_local_path_;
+
+    // tf
+    tf2_ros::Buffer tf_buffer_;
 
     // 各種オブジェクト
     nav_msgs::OccupancyGrid cost_map_;        // コストマップ

@@ -5,6 +5,7 @@ LocalPathPlanner::LocalPathPlanner():private_nh_("~")
     private_nh_.param("hz", hz_, {10});
     // private_nh_.param("dt", dt_, {0.1});
     private_nh_.param("path_frame", path_frame_, {"base_footprint"});
+    private_nh_.param("goal_frame", goal_frame_, {"odom"});
     private_nh_.param("goal_tolerance", goal_tolerance_, {0.5});
     private_nh_.param("max_vel", max_vel_, {1.2});
     private_nh_.param("max_yawrate", max_yawrate_, {1.0});
@@ -39,16 +40,29 @@ LocalPathPlanner::LocalPathPlanner():private_nh_("~")
 void LocalPathPlanner::cost_map_callback(const nav_msgs::OccupancyGridConstPtr& msg)
 {
     cost_map_ = *msg;
-    ROS_INFO_STREAM("get cost_map!!");
+    // ROS_INFO_STREAM("get cost_map!!");
     flag_cost_map_ = true;
 }
 
 // local_goalコールバック関数
 void LocalPathPlanner::local_goal_callback(const geometry_msgs::PointStampedConstPtr& msg)
 {
-    local_goal_ = *msg;
-    ROS_INFO_STREAM("get local_goal!!");
-    flag_local_goal_ = true;
+    geometry_msgs::TransformStamped transform;
+
+    try
+    {
+        transform = tf_buffer_.lookupTransform(path_frame_, goal_frame_, ros::Time(0));
+        // ROS_INFO_STREAM("get local_goal!!");
+        flag_local_goal_ = true;
+    }
+    catch(tf2::TransformException& ex)
+    {
+        ROS_WARN("%s", ex.what());
+        flag_local_goal_ = false;
+        return;
+    }
+
+    tf2::doTransform(*msg, local_goal_, transform);
 }
 
 // 機構的制約内で旋回可能な角度を計算
@@ -61,11 +75,11 @@ double LocalPathPlanner::calc_rad()
     const double x = max_vel_ * cos(steer_angle) + tread_ / 2;
     const double y = max_vel_ * sin(steer_angle);
     const double theta = atan2(y, x);
-    ROS_INFO_STREAM("theta : " << theta);
+    // ROS_INFO_STREAM("theta : " << theta);
 
     // 旋回で変わる方位の最大値を計算
     const double  yaw = max_yawrate_ / max_vel_ * path_reso_;
-    ROS_INFO_STREAM("yaw : " << yaw);
+    // ROS_INFO_STREAM("yaw : " << yaw);
 
     // 2つの合計
     const double max_rad = theta + yaw;
@@ -81,7 +95,7 @@ bool LocalPathPlanner::is_goal_check(const double x, const double y)
     double dy = local_goal_.point.y - y;
     double dist_to_goal = hypot(dx, dy);
 
-    ROS_INFO_STREAM("dist_to_goal : " << dist_to_goal);
+    // ROS_INFO_STREAM("dist_to_goal : " << dist_to_goal);
 
     if(dist_to_goal > goal_tolerance_)
         return false;
@@ -138,6 +152,9 @@ double LocalPathPlanner::calc_cost_map_eval(const std::vector<State>& traj)
     }
 
     int traj_size = traj.size();
+    if(traj_size == 0)
+        traj_size = 1;  // ゼロ割り防止
+    
     double cost_map_eval = total_cost / (min_cost_ * traj_size);
 
     return cost_map_eval;
@@ -180,6 +197,7 @@ void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nod
 
         // yaw角を計算
         double yaw = tmp_yaw_ + theta;
+        yaw = normalize_angle(yaw);
 
         // 軌跡を生成
         for(int step=1; step<=search_step_; step++)
@@ -193,13 +211,17 @@ void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nod
 
         // 軌跡に対する評価値を計算
         double score = calc_evaluation(traj);
+        // ROS_INFO_STREAM("score : " << score);
 
         //評価値が一番大きいデータの探索
         if(score > max_score)
         {
+            // ROS_INFO_STREAM("update!!!");
+            max_score = score;
+
             opt_x = traj[0].x;
             opt_y = traj[0].y;
-            opt_yaw = traj[0].yaw;
+            opt_yaw = traj[0].yaw;        
         }
     }
 
@@ -232,15 +254,19 @@ void LocalPathPlanner::create_path(const double max_rad)
     tmp_x_ = 0.0;
     tmp_y_ = 0.0;
     tmp_yaw_ = 0.0;
+    flag_goal_check_ = false;
+
+    int step_counter = 0;  //デバック用
 
     // local_goalに近づくまでノードを探索
     while(flag_goal_check_ == false)
     {
-        ROS_INFO_STREAM("----- search_node start -----");
+        // ROS_INFO_STREAM("----- search_node start -----");
         search_node(max_rad, nodes);
-        ROS_INFO_STREAM("----- search_node finish -----");
+        // ROS_INFO_STREAM("----- search_node finish -----");
 
         // 終了判定
+        // if(step_counter > 50)
         if(is_goal_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
         
@@ -248,12 +274,19 @@ void LocalPathPlanner::create_path(const double max_rad)
         tmp_x_ = nodes.back().x;
         tmp_y_ = nodes.back().y;
         tmp_yaw_ = nodes.back().yaw;
+
+        // ROS_INFO_STREAM("tmp_x_ : " << tmp_x_);
+        // ROS_INFO_STREAM("tmp_y_ : " << tmp_y_);
+        // ROS_INFO_STREAM("tmp_yaw_ : " << tmp_yaw_);
+
+        step_counter++;
+        // ROS_INFO_STREAM("step_counter : " << step_counter);
     }
     
     // 探索し終わったノード情報から目標軌道を生成
-    ROS_INFO_STREAM("----- transform_node_to_path start -----");
+    // ROS_INFO_STREAM("----- transform_node_to_path start -----");
     transform_node_to_path(nodes, path);
-    ROS_INFO_STREAM("----- transform_node_to_path finish -----");
+    // ROS_INFO_STREAM("----- transform_node_to_path finish -----");
 
     pub_local_path_.publish(path);
 }
@@ -273,11 +306,11 @@ void LocalPathPlanner::transform_node_to_path(const std::vector<State>& nodes, n
 }
 
 
-
 //メイン文で実行する関数
 void LocalPathPlanner::process()
 {
     ros::Rate loop_rate(hz_);
+    tf2_ros::TransformListener tf_listener(tf_buffer_);
 
     double max_rad = calc_rad();
     ROS_INFO_STREAM("max_rad : " << max_rad);

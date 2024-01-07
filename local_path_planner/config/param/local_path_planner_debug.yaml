@@ -2,7 +2,8 @@
 hz: 12              # ループ周波数 [Hz]
 
 # frame_id
-path_frame: "base_footprint"     # 歩行者
+path_frame: "base_footprint"     # local_path
+goal_frame: "odom"               # local_goal
 
 goal_tolerance: 0.5
 
@@ -14,7 +15,7 @@ max_steer_angle: 20
 tread: 0.5
 
 path_reso: 0.05
-theta_reso: 0.001
+theta_reso: 0.01
 search_step: 10
 
 weight_heading: 0.1

@@ -368,7 +368,7 @@ double CostMapCreator::calc_distance(const double person_x, const double person_
 // a : 長軸の長さ　b : 短軸の長さ
 double CostMapCreator::calc_short_side_length(const double x, const double a, const double b)
 {
-    const double y = b * sqrt(1 - (pow(x, 2.0) / pow(a, 2.0)));
+    const double y = b * sqrt(1 - ((x*x) / (a*a)));
 
     return y;
 }
