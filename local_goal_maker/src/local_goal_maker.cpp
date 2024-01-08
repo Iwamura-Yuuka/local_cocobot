@@ -1,6 +1,6 @@
-#include "local_goal_creator/local_goal_creator.h"
+#include "local_goal_maker/local_goal_maker.h"
 
-LocalGoalCreator::LocalGoalCreator():private_nh_("~")
+LocalGoalMaker::LocalGoalMaker():private_nh_("~")
 {
     private_nh_.param("hz", hz_, {10});
     private_nh_.param("goal_frame", goal_frame_, {"odom"});
@@ -9,29 +9,29 @@ LocalGoalCreator::LocalGoalCreator():private_nh_("~")
     private_nh_.param("index_step", index_step_, {5});
 
     //Subscriber
-    sub_global_path_ = nh_.subscribe("/global_path", 1, &LocalGoalCreator::global_path_callback, this, ros::TransportHints().reliable().tcpNoDelay());
-    sub_robot_odom_ = nh_.subscribe("/robot_odom", 1, &LocalGoalCreator::robot_odom_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_global_path_ = nh_.subscribe("/global_path", 1, &LocalGoalMaker::global_path_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_robot_odom_ = nh_.subscribe("/robot_odom", 1, &LocalGoalMaker::robot_odom_callback, this, ros::TransportHints().reliable().tcpNoDelay());
 
     //Publisher
     pub_local_goal_ = nh_.advertise<geometry_msgs::PointStamped>("local_goal", 1);
 }
 
 // global_pathのコールバック関数
-void LocalGoalCreator::global_path_callback(const nav_msgs::Path::ConstPtr& msg)
+void LocalGoalMaker::global_path_callback(const nav_msgs::Path::ConstPtr& msg)
 {
     global_path_ = *msg;
     flag_global_path_ = true;
 }
 
 // ロボットのodomのコールバック関数
-void LocalGoalCreator::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
+void LocalGoalMaker::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
     robot_odom_ = *msg;
     flag_robot_odom_ = true;
 }
 
 // local_goalまでの距離を計算
-double LocalGoalCreator::calc_dist_to_local_goal()
+double LocalGoalMaker::calc_dist_to_local_goal()
 {
     double dx = global_path_.poses[global_path_index_].pose.position.x - robot_odom_.pose.pose.position.x;
     double dy = global_path_.poses[global_path_index_].pose.position.y - robot_odom_.pose.pose.position.y;
@@ -40,7 +40,7 @@ double LocalGoalCreator::calc_dist_to_local_goal()
 }
 
 //local_goalの更新
-void LocalGoalCreator::update_local_goal()
+void LocalGoalMaker::update_local_goal()
 {
     double dist_to_local_goal = calc_dist_to_local_goal();
 
@@ -68,7 +68,7 @@ void LocalGoalCreator::update_local_goal()
 }
 
 //メイン文で実行する関数
-void LocalGoalCreator::process()
+void LocalGoalMaker::process()
 {
     ros::Rate loop_rate(hz_);
 

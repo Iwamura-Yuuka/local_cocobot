@@ -1,5 +1,5 @@
-#ifndef LOCAL_GOAL_CREATOR_H
-#define LOCAL_GOAL_CREATOR_H
+#ifndef LOCAL_GOAL_MAKER_H
+#define LOCAL_GOAL_MAKER_H
 
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
@@ -7,10 +7,10 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PointStamped.h>
 
-class LocalGoalCreator
+class LocalGoalMaker
 {
 public:
-    LocalGoalCreator();
+    LocalGoalMaker();
     void process();
 
 private:
@@ -50,4 +50,4 @@ private:
     geometry_msgs::PointStamped local_goal_;  // local_goal
 };
 
-#endif  // LOCAL_GOAL_CREATOR_H
+#endif  // LOCAL_GOAL_MAKER_H
