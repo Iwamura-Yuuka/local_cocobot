@@ -3,8 +3,8 @@
 TargetPathPlanner::TargetPathPlanner():private_nh_("~")
 {
     private_nh_.param("hz", hz_, {10});
-    // private_nh_.param("dt", dt_, {0.1});
-    private_nh_.param("path_frame", path_frame_, {"base_footprint"});
+    private_nh_.param("node_frame", node_frame_, {"base_footprint"});
+    private_nh_.param("path_frame", path_frame_, {"odom"});
     private_nh_.param("goal_frame", goal_frame_, {"odom"});
     private_nh_.param("goal_tolerance", goal_tolerance_, {0.5});
     private_nh_.param("finish_dist", finish_dist_, {4.9});
@@ -44,7 +44,7 @@ void TargetPathPlanner::local_goal_callback(const geometry_msgs::PointStampedCon
 
     try
     {
-        transform = tf_buffer_.lookupTransform(path_frame_, goal_frame_, ros::Time(0));
+        transform = tf_buffer_.lookupTransform(node_frame_, goal_frame_, ros::Time(0));
         flag_local_goal_ = true;
     }
     catch(tf2::TransformException& ex)
@@ -240,22 +240,17 @@ void TargetPathPlanner::create_path(const double max_rad)
     path.header.stamp = ros::Time::now();
     path.header.frame_id = path_frame_;
 
-    // 初期値を代入
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = path_frame_;
-    pose.pose.position.x = 0.0;
-    pose.pose.position.y = 0.0;
-    path.poses.push_back(pose);
-
     std::vector<State> nodes;  // ノード情報格納用
+
+    // 初期値を代入
+    State node = {0.0, 0.0, 0.0};
+    nodes.push_back(node);
 
     // 初期化
     tmp_x_ = 0.0;
     tmp_y_ = 0.0;
     tmp_yaw_ = 0.0;
     flag_goal_check_ = false;
-
-    int step_counter = 0;  //デバック用
 
     // local_goalに近づくまでノードを探索
     while(flag_goal_check_ == false)
@@ -265,37 +260,74 @@ void TargetPathPlanner::create_path(const double max_rad)
         // ROS_INFO_STREAM("----- search_node finish -----");
 
         // 終了判定
-        // if(step_counter > 50)
         if(is_goal_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
         else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
+        // if(is_goal_check(nodes.back().x, nodes.back().y) == true)
+        // {
+        //     flag_goal_check_ = true;
+        //     break;
+        // }
+        // else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
+        // {
+        //     flag_goal_check_ = true;
+        //     break;
+        // }
         
         // 今回の探索結果を格納
         tmp_x_ = nodes.back().x;
         tmp_y_ = nodes.back().y;
         tmp_yaw_ = nodes.back().yaw;
-
-        step_counter++;
     }
     
     // 探索し終わったノード情報から目標軌道を生成
     transform_node_to_path(nodes, path);
 
-    pub_target_path_.publish(path);
+    if(flag_frame_change_ == true)
+        pub_target_path_.publish(path);
 }
 
 // ノード情報からパスを生成
+// base_footprintからodomに変換
 void TargetPathPlanner::transform_node_to_path(const std::vector<State>& nodes, nav_msgs::Path& path)
 {
+    geometry_msgs::TransformStamped tf;
+    
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = path_frame_;
 
     for(auto& node : nodes)
     {
-        pose.pose.position.x = node.x;
-        pose.pose.position.y = node.y;
-        path.poses.push_back(pose);
+        geometry_msgs::Pose node_before;    // 座標変換前のノード格納用
+        geometry_msgs::Pose node_after;     // 座標変換後のノード位置格納用
+
+        node_before.position.x = node.x;
+        node_before.position.y = node.y;
+
+        // ノードをbase_footprintからodomに変更
+        try
+        {
+            tf = tf_buffer_.lookupTransform(path_frame_, node_frame_, ros::Time(0));
+            flag_frame_change_ = true;
+
+            // ノードをdoTransformで座標変換
+            tf2::doTransform(node_before, node_after, tf);
+
+            pose.pose.position = node_after.position;
+            pose.pose.orientation.x = 0.0;
+            pose.pose.orientation.y = 0.0;
+            pose.pose.orientation.z = 0.0;
+            pose.pose.orientation.w = 0.0;
+
+            path.poses.push_back(pose);
+        }
+        catch(tf2::TransformException& ex)
+        {
+            ROS_WARN("%s", ex.what());
+            flag_frame_change_ = false;
+            return;
+        }
     }
 }
 

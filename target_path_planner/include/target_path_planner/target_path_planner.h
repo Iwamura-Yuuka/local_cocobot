@@ -8,6 +8,7 @@
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2/utils.h>
@@ -50,6 +51,7 @@ private:
 
     // yamlファイルで設定可能な変数
     int hz_;                  // ループ周波数 [Hz]
+    std::string node_frame_;  // 生成するノードのframe_id
     std::string path_frame_;  // 生成するpathのframe_id
     std::string goal_frame_;  // local_goalのframe_id
     double goal_tolerance_;   // local_goal_に対する許容誤差 [m]
@@ -76,6 +78,9 @@ private:
 
     // local_goalから一定距離内に到達したかの確認用
     bool flag_goal_check_ = false;
+
+    // 座標変換の判定用
+    bool flag_frame_change_ = false;
 
     // NodeHandle
     ros::NodeHandle nh_;

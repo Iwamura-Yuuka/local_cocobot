@@ -2,7 +2,8 @@
 hz: 20  # ループ周波数 [Hz]
 
 # frame_id
-path_frame: "base_footprint"  # target_path
+node_frame: "base_footprint"  # ノード
+path_frame: "odom"            # target_path
 goal_frame: "odom"            # local_goal
 
 # ノード探索の終了判定
