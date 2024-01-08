@@ -8,7 +8,7 @@ people_frame: "base_footprint"     # 歩行者
 cost_map_frame: "base_footprint"  # コストマップ
 
 # map
-map_size: 8.0    # マップの一辺の長さ [m]
+map_size: 5.0    # マップの一辺の長さ [m]
 map_reso: 0.05  # マップの解像度 [m/cell]
 
 # 楕円のサイズ
