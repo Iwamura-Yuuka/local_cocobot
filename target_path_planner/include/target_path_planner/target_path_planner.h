@@ -1,5 +1,5 @@
-#ifndef LOCAL_PATH_PLANNER_H
-#define LOCAL_PATH_PLANNER_H
+#ifndef TARGET_PATH_PLANNER_H
+#define TARGET_PATH_PLANNER_H
 
 #include <ros/ros.h>
 #include <queue>
@@ -21,10 +21,10 @@ struct State
 };
 
 // ===== クラス =====
-class LocalPathPlanner
+class TargetPathPlanner
 {
 public:
-    LocalPathPlanner();
+    TargetPathPlanner();
     void process();
 
 private:
@@ -34,6 +34,7 @@ private:
 
     // 引数あり関数
     bool is_goal_check(const double x, const double y);                                  // pathの終端がlocal_goalから一定距離内に到達したか確認
+    bool is_finish_check(const double x, const double y);                                // pathの終端がロボットから一定距離離れたか確認
     double calc_evaluation(const std::vector<State>& traj);                              // 評価関数を計算する
     double calc_heading_eval(const std::vector<State>& traj);                            // heading（1項目）の評価関数を計算する
     double calc_cost_map_eval(const std::vector<State>& traj);                           // cost_map（2項目）の評価関数を計算する
@@ -52,6 +53,7 @@ private:
     std::string path_frame_;  // 生成するpathのframe_id
     std::string goal_frame_;  // local_goalのframe_id
     double goal_tolerance_;   // local_goal_に対する許容誤差 [m]
+    double finish_dist_;      // ロボットからノード先端までの距離 [m]
     double max_vel_;          // 最高並進速度 [m/s]
     double max_yawrate_;      // 最高旋回速度 [rad/s]
     double max_steer_angle_;  // ステア角の最大値 [deg]
@@ -84,7 +86,7 @@ private:
     ros::Subscriber sub_local_goal_;
 
     // Publisher
-    ros::Publisher pub_local_path_;
+    ros::Publisher pub_target_path_;
 
     // tf
     tf2_ros::Buffer tf_buffer_;
@@ -94,4 +96,4 @@ private:
     geometry_msgs::PointStamped local_goal_;  // local_goal
 };
 
-#endif // LOCAL_PATH_PLANNER_H
+#endif // TARGET_PATH_PLANNER_H

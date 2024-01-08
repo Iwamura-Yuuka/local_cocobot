@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(local_path_planner)
+project(target_path_planner)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11 -O3 -g -Wall)
@@ -21,7 +21,7 @@ tf2
 ###################################
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES local_path_planner
+ LIBRARIES target_path_planner
 #  CATKIN_DEPENDS nav_msgs roscpp std_msgs
 #  DEPENDS system_lib
 )
@@ -34,10 +34,10 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME} src/local_path_planner.cpp)
+add_library(${PROJECT_NAME} src/target_path_planner.cpp)
 
 ## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node src/local_path_planner_node.cpp)
+add_executable(${PROJECT_NAME}_node src/target_path_planner_node.cpp)
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

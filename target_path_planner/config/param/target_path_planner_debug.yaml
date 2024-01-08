@@ -2,11 +2,12 @@
 hz: 20  # ループ周波数 [Hz]
 
 # frame_id
-path_frame: "base_footprint"  # local_path
+path_frame: "base_footprint"  # target_path
 goal_frame: "odom"            # local_goal
 
-# local_goal_に対する許容誤差 [m]
-goal_tolerance: 0.5
+# ノード探索の終了判定
+goal_tolerance: 1.0  # local_goal_に対する許容誤差 [m]
+finish_dist: 4.9     # ロボットからノード先端までの距離 [m]
 
 # 速度関連
 max_vel: 1.2      # 最高並進速度 [m/s]

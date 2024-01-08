@@ -1,12 +1,13 @@
-#include "local_path_planner/local_path_planner.h"
+#include "target_path_planner/target_path_planner.h"
 
-LocalPathPlanner::LocalPathPlanner():private_nh_("~")
+TargetPathPlanner::TargetPathPlanner():private_nh_("~")
 {
     private_nh_.param("hz", hz_, {10});
     // private_nh_.param("dt", dt_, {0.1});
     private_nh_.param("path_frame", path_frame_, {"base_footprint"});
     private_nh_.param("goal_frame", goal_frame_, {"odom"});
     private_nh_.param("goal_tolerance", goal_tolerance_, {0.5});
+    private_nh_.param("finish_dist", finish_dist_, {4.9});
     private_nh_.param("max_vel", max_vel_, {1.2});
     private_nh_.param("max_yawrate", max_yawrate_, {1.0});
     private_nh_.param("max_steer_angle", max_steer_angle_, {20});
@@ -22,22 +23,22 @@ LocalPathPlanner::LocalPathPlanner():private_nh_("~")
     private_nh_.param("tmp_yaw", tmp_yaw_, {0.0});
 
     //Subscriber
-    sub_cost_map_ = nh_.subscribe("/cost_map", 1, &LocalPathPlanner::cost_map_callback, this, ros::TransportHints().reliable().tcpNoDelay());
-    sub_local_goal_ = nh_.subscribe("/local_goal", 1, &LocalPathPlanner::local_goal_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_cost_map_ = nh_.subscribe("/cost_map", 1, &TargetPathPlanner::cost_map_callback, this, ros::TransportHints().reliable().tcpNoDelay());
+    sub_local_goal_ = nh_.subscribe("/local_goal", 1, &TargetPathPlanner::local_goal_callback, this, ros::TransportHints().reliable().tcpNoDelay());
 
     //Publisher
-    pub_local_path_ = nh_.advertise<nav_msgs::Path>("/local_path", 1);
+    pub_target_path_ = nh_.advertise<nav_msgs::Path>("/target_path", 1);
 }
 
 // cost_mapのコールバック関数
-void LocalPathPlanner::cost_map_callback(const nav_msgs::OccupancyGridConstPtr& msg)
+void TargetPathPlanner::cost_map_callback(const nav_msgs::OccupancyGridConstPtr& msg)
 {
     cost_map_ = *msg;
     flag_cost_map_ = true;
 }
 
 // local_goalコールバック関数
-void LocalPathPlanner::local_goal_callback(const geometry_msgs::PointStampedConstPtr& msg)
+void TargetPathPlanner::local_goal_callback(const geometry_msgs::PointStampedConstPtr& msg)
 {
     geometry_msgs::TransformStamped transform;
 
@@ -57,7 +58,7 @@ void LocalPathPlanner::local_goal_callback(const geometry_msgs::PointStampedCons
 }
 
 // 機構的制約内で旋回可能な角度を計算
-double LocalPathPlanner::calc_rad()
+double TargetPathPlanner::calc_rad()
 {
     // ステア角の最大値をdegからradに変換
     const double steer_angle = max_steer_angle_ / 180 * M_PI;
@@ -77,7 +78,8 @@ double LocalPathPlanner::calc_rad()
 }
 
 // pathの終端がlocal_goalから一定距離内に到達したか確認
-bool LocalPathPlanner::is_goal_check(const double x, const double y)
+// goalするまでfalseを返す
+bool TargetPathPlanner::is_goal_check(const double x, const double y)
 {
     // local_goalまでの距離を計算
     double dx = local_goal_.point.x - x;
@@ -90,8 +92,21 @@ bool LocalPathPlanner::is_goal_check(const double x, const double y)
         return true;
 }
 
+// pathの終端がロボットから一定距離離れたか確認
+// 一定距離離れるまでfalseを返す
+bool TargetPathPlanner::is_finish_check(const double x, const double y)
+{
+    // ロボットからの距離を計算
+    double dist = hypot(x, y);
+
+    if(dist < finish_dist_)
+        return false;
+    else
+        return true;
+}
+
 // 評価関数を計算する
-double LocalPathPlanner::calc_evaluation(const std::vector<State>& traj)
+double TargetPathPlanner::calc_evaluation(const std::vector<State>& traj)
 {
     double heading_value = weight_heading_ * calc_heading_eval(traj);
     double cost_map_value = weight_cost_map_ * calc_cost_map_eval(traj);
@@ -103,7 +118,7 @@ double LocalPathPlanner::calc_evaluation(const std::vector<State>& traj)
 
 // heading（1項目）の評価関数を計算する
 // 大きいほど良い
-double LocalPathPlanner::calc_heading_eval(const std::vector<State>& traj)
+double TargetPathPlanner::calc_heading_eval(const std::vector<State>& traj)
 {
     //最終時刻でのロボットの方向
     double theta = traj.back().yaw;
@@ -126,7 +141,7 @@ double LocalPathPlanner::calc_heading_eval(const std::vector<State>& traj)
 
 // cost_map（2項目）の評価関数を計算する
 // 大きいほど良くない
-double LocalPathPlanner::calc_cost_map_eval(const std::vector<State>& traj)
+double TargetPathPlanner::calc_cost_map_eval(const std::vector<State>& traj)
 {
     double total_cost = 0;  // 通過した場所の走行コストの合計値
 
@@ -148,7 +163,7 @@ double LocalPathPlanner::calc_cost_map_eval(const std::vector<State>& traj)
 }
 
 // 適切な角度(-M_PI ~ M_PI)を返す
-double LocalPathPlanner::normalize_angle(double theta)
+double TargetPathPlanner::normalize_angle(double theta)
 {
     if(theta > M_PI)
         theta -= 2.0 * M_PI;
@@ -159,7 +174,7 @@ double LocalPathPlanner::normalize_angle(double theta)
 }
 
 // 座標からグリッドのインデックスを返す
-int LocalPathPlanner::xy_to_grid_index(const double x, const double y)
+int TargetPathPlanner::xy_to_grid_index(const double x, const double y)
 {
     const int index_x = int(round((x - cost_map_.info.origin.position.x) / cost_map_.info.resolution));
     const int index_y = int(round((y - cost_map_.info.origin.position.y) / cost_map_.info.resolution));
@@ -168,7 +183,7 @@ int LocalPathPlanner::xy_to_grid_index(const double x, const double y)
 }
 
 // 次のノードを探索
-void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nodes)
+void TargetPathPlanner::search_node(const double max_rad, std::vector<State>& nodes)
 {
     // 最適なノードの情報格納用
     double opt_x = 0.0;
@@ -219,7 +234,7 @@ void LocalPathPlanner::search_node(const double max_rad, std::vector<State>& nod
 }
 
 // 目標軌道を生成
-void LocalPathPlanner::create_path(const double max_rad)
+void TargetPathPlanner::create_path(const double max_rad)
 {
     nav_msgs::Path path;
     path.header.stamp = ros::Time::now();
@@ -253,6 +268,8 @@ void LocalPathPlanner::create_path(const double max_rad)
         // if(step_counter > 50)
         if(is_goal_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
+        else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
+            flag_goal_check_ = true;
         
         // 今回の探索結果を格納
         tmp_x_ = nodes.back().x;
@@ -265,11 +282,11 @@ void LocalPathPlanner::create_path(const double max_rad)
     // 探索し終わったノード情報から目標軌道を生成
     transform_node_to_path(nodes, path);
 
-    pub_local_path_.publish(path);
+    pub_target_path_.publish(path);
 }
 
 // ノード情報からパスを生成
-void LocalPathPlanner::transform_node_to_path(const std::vector<State>& nodes, nav_msgs::Path& path)
+void TargetPathPlanner::transform_node_to_path(const std::vector<State>& nodes, nav_msgs::Path& path)
 {
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = path_frame_;
@@ -283,7 +300,7 @@ void LocalPathPlanner::transform_node_to_path(const std::vector<State>& nodes, n
 }
 
 //メイン文で実行する関数
-void LocalPathPlanner::process()
+void TargetPathPlanner::process()
 {
     ros::Rate loop_rate(hz_);
     tf2_ros::TransformListener tf_listener(tf_buffer_);
