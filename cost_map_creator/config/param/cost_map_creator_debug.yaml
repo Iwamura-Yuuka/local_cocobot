@@ -13,11 +13,11 @@ map_reso: 0.05  # マップの解像度 [m/cell]
 
 # 楕円のサイズ
 ellipse_front_long_max: 1.5  # 楕円の長軸（歩行者の進行方向前方）の最大値 [m]
-ellipse_front_long_min: 0.5  # 楕円の長軸（歩行者の進行方向前方）の最小値 [m]
+ellipse_front_long_min: 0.8  # 楕円の長軸（歩行者の進行方向前方）の最小値 [m]
 ellipse_back_long_max: 1.0   # 楕円の長軸（歩行者の進行方向後方）の最大値 [m]
-ellipse_back_long_min: 0.3   # 楕円の長軸（歩行者の進行方向後方）の最小値 [m]
+ellipse_back_long_min: 0.5   # 楕円の長軸（歩行者の進行方向後方）の最小値 [m]
 ellipse_short_max: 1.0       # 楕円の短軸の最大値 [m]
-ellipse_short_min: 0.3       # 楕円の短軸の最小値 [m]
+ellipse_short_min: 0.5       # 楕円の短軸の最小値 [m]
 
 # 楕円のサイズを決める際の重み定数（2つの合計が1になるように設定する）
 weight_distance: 0.5         # ロボットからの距離に関する項
@@ -28,4 +28,4 @@ ped_speed_max: 1.5           # 歩く速さの最大値 [m/s]
 
 # コストマップ
 count_reso: 0.02             # コストを割り当てる際に計算する座標の刻み幅 [m]
-min_cost: 30.0               # 割り当てるコストの最小値
+min_cost: 50.0               # 割り当てるコストの最小値
