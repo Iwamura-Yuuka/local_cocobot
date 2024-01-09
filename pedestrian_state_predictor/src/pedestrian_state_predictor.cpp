@@ -11,7 +11,6 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
     private_nh_.param("people_frame", people_frame_, {"base_footprint"});
     private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
-    private_nh_.param("predict_time_resolution", predict_time_resolution_, {2.5});
     private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
     private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
@@ -206,8 +205,14 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             transform_and_calc_speed(current_person, selected_current_person, after_ones_x, after_ones_y);
             selected_current_people.people_states.push_back(selected_current_person);
 
+            // ロボットと歩行者の相対速度（base_footprint座標系のx軸方向）を計算
+            const double relative_vel = robot_odom_.twist.twist.linear.x - selected_current_person.twist.linear.x;
+            
             // 何秒先の将来位置を予測するか
-            const double predict_time = dist / predict_time_resolution_;
+            double predict_time = 0.0;  // 相対速度が0以下の場合は，現在位置を予測位置とする
+
+            if(relative_vel > 0)
+                predict_time = dist / relative_vel;
 
             // 将来位置を計算
             const double future_x = current_person.pose.position.x + (current_person.twist.linear.x * predict_time);
