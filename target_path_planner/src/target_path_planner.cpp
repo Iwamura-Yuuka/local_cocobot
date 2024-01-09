@@ -252,15 +252,20 @@ void TargetPathPlanner::create_path(const double max_rad)
     tmp_yaw_ = 0.0;
     flag_goal_check_ = false;
 
+    int step_counter = 0;
+
     // local_goalに近づくまでノードを探索
     while(flag_goal_check_ == false)
     {
         // ROS_INFO_STREAM("----- search_node start -----");
         search_node(max_rad, nodes);
+        step_counter++;
         // ROS_INFO_STREAM("----- search_node finish -----");
 
         // 終了判定
         if(is_goal_check(nodes.back().x, nodes.back().y) == true)
+            flag_goal_check_ = true;
+        else if(step_counter > 100)
             flag_goal_check_ = true;
         else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
@@ -281,6 +286,8 @@ void TargetPathPlanner::create_path(const double max_rad)
         tmp_yaw_ = nodes.back().yaw;
     }
     
+    // ROS_INFO_STREAM("step : " << step_counter);
+
     // 探索し終わったノード情報から目標軌道を生成
     transform_node_to_path(nodes, path);
 

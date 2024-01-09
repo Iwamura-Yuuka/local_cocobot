@@ -21,7 +21,7 @@ tread: 0.5           # トレッド [m]
 # path関連
 path_reso: 0.05   # 生成するpathの刻み幅 [m]
 theta_reso: 0.01  # 候補となるpathを生成する際の方位の刻み幅 [rad]
-search_step: 10   # 何ステップ先まで評価値を計算するか
+search_step: 10    # 何ステップ先まで評価値を計算するか
 
 # 評価関数関連
 weight_heading: 0.1   # 評価関数1項目　重みづけ定数
