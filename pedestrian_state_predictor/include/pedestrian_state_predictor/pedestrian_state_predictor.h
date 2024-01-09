@@ -50,7 +50,6 @@ private:
     std::string robot_frame_;                       // ロボットの位置情報のframe_id
     std::string people_frame_;                      // 歩行者の位置情報のframe_id
     double predict_dist_border_;                    // 歩行者の将来位置を予測する距離 [m]
-    double predict_time_resolution_;                // 1秒先を予測する距離 [m]
 
     // その他の変数
     double tmp_robot_x_;                            // 1ループ前のロボットのx座標格納用
