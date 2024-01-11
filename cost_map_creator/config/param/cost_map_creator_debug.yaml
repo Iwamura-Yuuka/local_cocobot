@@ -1,5 +1,10 @@
 # デバック用
 
+# 走行コストの設定をするかの設定用
+# trueなら走行コストを設定
+# falseなら障害物を膨張するのみ
+flag_cost: true
+
 # 制御周波数[Hz]
 hz: 12              # ループ周波数 [Hz]
 
@@ -18,6 +23,9 @@ ellipse_back_long_max: 1.0   # 楕円の長軸（歩行者の進行方向後方�
 ellipse_back_long_min: 0.3   # 楕円の長軸（歩行者の進行方向後方）の最小値 [m]
 ellipse_short_max: 1.0       # 楕円の短軸の最大値 [m]
 ellipse_short_min: 0.3       # 楕円の短軸の最小値 [m]
+
+# 衝突半径
+margin: 0.5                  # 人間の肩幅＋ccvの幅の半分 [m]
 
 # 楕円のサイズを決める際の重み定数（2つの合計が1になるように設定する）
 weight_distance: 0.5         # ロボットからの距離に関する項

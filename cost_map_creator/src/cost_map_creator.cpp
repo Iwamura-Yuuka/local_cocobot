@@ -3,6 +3,7 @@
 CostMapCreator::CostMapCreator():private_nh_("~")
 {
     // param
+    private_nh_.param("flag_cost", flag_cost_, {false});
     private_nh_.param("hz", hz_, {10});
     private_nh_.param("people_frame", people_frame_, {"base_footprint"});
     private_nh_.param("cost_map_frame", cost_map_frame_, {"base_footprint"});
@@ -14,6 +15,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("ellipse_back_long_min", ellipse_back_long_min_, {0.3});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
     private_nh_.param("ellipse_short_min", ellipse_short_min_, {0.3});
+    private_nh_.param("margin", margin_, {0.5});
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
@@ -487,20 +489,24 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
     if(is_in_map(person_map_, future_person.pose.position.x, future_person.pose.position.y))
     {
         const int grid_index = xy_to_grid_index(person_map_, future_person.pose.position.x, future_person.pose.position.y);
-        person_map_.data[grid_index] = 100;  // 占有にする
+        assign_cost_for_person_cost_map(future_person.pose.position.x, future_person.pose.position.y, 100, min_index, max_index);
+        // person_map_.data[grid_index] = 100;  // 占有にする
     }
 
-    // 長軸方向(前)のグリッドを探索
-    search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta, ellipse_front_long, ellipse_short, min_index, max_index);
+    if(flag_cost_ == true)  // trueなら走行コストを設定
+    {
+        // 長軸方向(前)のグリッドを探索
+        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta, ellipse_front_long, ellipse_short, min_index, max_index);
 
-    // 長軸方向(後)のグリッドを探索
-    search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+M_PI, ellipse_back_long, ellipse_short, min_index, max_index);
+        // 長軸方向(後)のグリッドを探索
+        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+M_PI, ellipse_back_long, ellipse_short, min_index, max_index);
 
-    // 短軸方向（上）のグリッドを探索
-    search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta-(M_PI/2), ellipse_short, min_index, max_index);
+        // 短軸方向（上）のグリッドを探索
+        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta-(M_PI/2), ellipse_short, min_index, max_index);
 
-    // 短軸方向（下）のグリッドを探索
-    search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+(M_PI/2), ellipse_short, min_index, max_index);
+        // 短軸方向（下）のグリッドを探索
+        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+(M_PI/2), ellipse_short, min_index, max_index);
+    }
 }
 
 // person_map_の穴を埋める

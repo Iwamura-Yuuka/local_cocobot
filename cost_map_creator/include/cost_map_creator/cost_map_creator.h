@@ -53,6 +53,7 @@ private:
     void create_cost_map();  // コストマップを作成
 
     // yamlファイルで設定可能な変数
+    bool flag_cost_;                 // 走行コストを設定するかどうかの変更用
     int hz_;                         // ループ周波数 [Hz]
     std::string people_frame_;       // 歩行者の位置情報のframe_id
     std::string cost_map_frame_;     // コストマップのframe_id
@@ -64,6 +65,7 @@ private:
     double ellipse_back_long_min_;   // 走行コストの楕円の長軸（後方）の最小値 [m]
     double ellipse_short_max_;       // 走行コストの楕円の短軸の最大値 [m]
     double ellipse_short_min_;       // 走行コストの楕円の短軸の最小値 [m]
+    double margin_;                  // 人間の肩幅＋ccvの幅の半分（衝突半径）[m]
     double weight_distance_;         // ロボットからの距離に関する項の重み定数
     double weight_speed_;            // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;           // 歩行者の歩く速さの最大値 [m/s]
