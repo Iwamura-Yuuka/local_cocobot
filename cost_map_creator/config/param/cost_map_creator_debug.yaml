@@ -4,6 +4,7 @@
 # trueなら走行コストを設定
 # falseなら障害物を膨張するのみ
 flag_cost: true
+# flag_cost: false
 
 # 制御周波数[Hz]
 hz: 12              # ループ周波数 [Hz]

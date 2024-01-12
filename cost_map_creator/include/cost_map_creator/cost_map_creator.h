@@ -39,13 +39,15 @@ private:
     double normalize_angle(double theta);                                                                                                                                                               // 適切な角度(-M_PI ~ M_PI)を返す
     bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);                                                                                                                       // マップ内の場合、trueを返す
     int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);                                                                                                                 // 座標からグリッドのインデックスを返す
-    int count_grid(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);                                                                 // マスをカウント
+    void search_grid_size(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);                                                          // マスを探索
+    double count_grid(const std::vector<Coordinate> side, std::vector<Coordinate>& cost_side, const double person_x, const double person_y);                                                      // 走行コストを割り当てるマスをカウント
     void assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index);                                                                            // person_map_にコストを割り当てる
     double calc_distance(const double person_x, const double person_y, const double x, const double y);                                                                                                 // 歩行者位置までの距離を計算
     double calc_short_side_length(const double x, const double a, const double b);                                                                                                                      // 長軸方向の位置から対応する短軸方向の長さを計算
     void search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, int& min_index, int& max_index);  // 長軸方向のグリッドを探索
     void search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, int& min_index, int& max_index);                                   // 短軸方向のグリッドを探索
     void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person, int& min_index, int& max_index);                                 // 歩行者1人のみ考慮したコストマップを作成
+    void expand_obstacle(const double person_x, const double person_y, int& min_index, int& max_index);                                                                                                 // 歩行者の周りの衝突半径分を占有にする
     void fix_person_cost_map(const int min_index, const int max_index);                                                                                                                                 // person_map_の穴を埋める
     void copy_cost(const int min_index, const int max_index);                                                                                                                                           // person_map_のコストをコストマップにコピー
 
