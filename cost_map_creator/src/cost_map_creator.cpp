@@ -15,7 +15,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("ellipse_back_long_min", ellipse_back_long_min_, {0.3});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
     private_nh_.param("ellipse_short_min", ellipse_short_min_, {0.3});
-    private_nh_.param("margin", margin_, {0.5});
+    private_nh_.param("margin", margin_, {0.25});
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
@@ -497,7 +497,7 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         const double short_minus_cost_reso = (long_cost - min_cost_) / short_minus_grid_size2;
         double short_minus_cost = long_cost;
 
-        for(const auto& short_minus_point : short_side_minus)
+        for(const auto& short_minus_point : cost_short_side_minus)
         {
             // コストを計算
             short_minus_cost -= short_minus_cost_reso;
@@ -532,7 +532,7 @@ void CostMapCreator::search_short_side_grid(const double person_x, const double 
     const double short_cost_reso = (100 - min_cost_) / short_grid_size2;
     double short_cost = 100;
 
-    for(const auto& short_side_point : short_side)
+    for(const auto& short_side_point : cost_short_side)
     {
         // コストを計算
         short_cost -= short_cost_reso;

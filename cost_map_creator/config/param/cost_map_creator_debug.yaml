@@ -25,8 +25,8 @@ ellipse_back_long_min: 0.3   # 楕円の長軸（歩行者の進行方向後方�
 ellipse_short_max: 1.0       # 楕円の短軸の最大値 [m]
 ellipse_short_min: 0.3       # 楕円の短軸の最小値 [m]
 
-# 衝突半径
-margin: 0.5                  # 人間の肩幅＋ccvの幅の半分 [m]
+# 歩行者サイズ
+margin: 0.5                  # 人間の肩幅の半分 [m]
 
 # 楕円のサイズを決める際の重み定数（2つの合計が1になるように設定する）
 weight_distance: 0.5         # ロボットからの距離に関する項
