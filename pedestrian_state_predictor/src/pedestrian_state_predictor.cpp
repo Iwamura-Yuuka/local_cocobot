@@ -7,10 +7,12 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
     private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
     private_nh_.param("visualize_selected_current_people_poses", visualize_selected_current_people_poses_, {false});
     private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
+    private_nh_.param("flag_prediction", flag_prediction_, {true});
     private_nh_.param("sim_frame", sim_frame_, {"odom"});
     private_nh_.param("robot_frame", robot_frame_, {"odom"});
     private_nh_.param("people_frame", people_frame_, {"base_footprint"});
-    private_nh_.param("predict_dist_border", predict_dist_border_, {8.0});
+    private_nh_.param("consider_dist_border", consider_dist_border_, {8.0});
+    private_nh_.param("predict_dist_border", predict_dist_border_, {3.0});
     private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
     private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
@@ -194,7 +196,7 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
         const double dist = calc_distance(robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y, current_person.pose.position.x, current_person.pose.position.y);
 
         // ロボットからの距離が一定以下の歩行者に関して，将来位置を予測
-        if(dist <= predict_dist_border_)
+        if(dist <= consider_dist_border_)
         {
             // base_link座標系での速度計算のために1秒先の位置を予測
             const double after_ones_x = current_person.pose.position.x + (current_person.twist.linear.x * 1.0);
@@ -211,7 +213,7 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             // 何秒先の将来位置を予測するか
             double predict_time = 0.0;  // 相対速度が0以下の場合は，現在位置を予測位置とする
 
-            if(relative_vel > 0)
+            if((flag_prediction_ == true) && (dist <= predict_dist_border_) && (relative_vel > 0))
                 predict_time = dist / relative_vel;
 
             // 将来位置を計算

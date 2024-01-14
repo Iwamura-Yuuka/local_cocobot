@@ -46,9 +46,11 @@ private:
     bool visualize_current_people_poses_;           // 歩行者の現在位置（odom）を可視化するかの設定用
     bool visualize_selected_current_people_poses_;  // ロボットに近い歩行者の現在位置（base_footprint）を可視化するかの設定用
     bool visualize_future_people_poses_;            // 予測した歩行者の将来位置を可視化するかの設定用
+    bool flag_prediction_;                          // 歩行者の移動先予測をするかの変更用
     std::string sim_frame_;                         // シミュレーターからの歩行者の位置情報のframe_id
     std::string robot_frame_;                       // ロボットの位置情報のframe_id
     std::string people_frame_;                      // 歩行者の位置情報のframe_id
+    double consider_dist_border_;                   // cost_map_createrにデータを渡す歩行者の距離 [m]
     double predict_dist_border_;                    // 歩行者の将来位置を予測する距離 [m]
 
     // その他の変数
