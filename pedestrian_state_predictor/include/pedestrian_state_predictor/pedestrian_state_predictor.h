@@ -62,7 +62,7 @@ private:
     bool flag_robot_odom_ = false;
 
     // 座標変換の判定用
-    bool flag_frame_change_ = false;
+    bool flag_frame_change_ = true;
 
     // NodeHandle
     ros::NodeHandle nh_;
