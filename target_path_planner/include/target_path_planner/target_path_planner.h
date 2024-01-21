@@ -62,7 +62,7 @@ private:
     double max_speed_;        // タイヤの最高回転速度 [m/s]
     double speed_reso_;       // 速度を探索する際の刻み幅 [m/s]
     double max_steer_angle_;  // ステア角の最大値 [deg]
-    double steer_angle_reso_;  // ステア角を探索するときの刻み幅[deg]
+    double steer_angle_reso_;  // ステア角を探索するときの刻み幅 [deg]
     double tread_;            // ccvのトレッド [m]
     double path_reso_;        // 生成するpathの刻み幅 [m]
     double theta_reso_;       // 候補となるpathを生成する際の方位の刻み幅 [rad]
