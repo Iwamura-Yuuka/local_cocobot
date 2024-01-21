@@ -47,7 +47,8 @@ private:
 
 
     // 引数なし関数
-    double calc_rad();  // 機構的制約内で旋回可能な角度を計算
+    double calc_rad_with_steer();  // 機構的制約内で旋回可能な角度を計算（ステアあり）
+    double calc_rad_no_steer();    // 機構的制約内で旋回可能な角度を計算(ステアなし)
 
     // yamlファイルで設定可能な変数
     int hz_;                  // ループ周波数 [Hz]
@@ -58,7 +59,10 @@ private:
     double finish_dist_;      // ロボットからノード先端までの距離 [m]
     double max_vel_;          // 最高並進速度 [m/s]
     double max_yawrate_;      // 最高旋回速度 [rad/s]
+    double max_speed_;        // タイヤの最高回転速度 [m/s]
+    double speed_reso_;       // 速度を探索する際の刻み幅 [m/s]
     double max_steer_angle_;  // ステア角の最大値 [deg]
+    double steer_angle_reso_;  // ステア角を探索するときの刻み幅[deg]
     double tread_;            // ccvのトレッド [m]
     double path_reso_;        // 生成するpathの刻み幅 [m]
     double theta_reso_;       // 候補となるpathを生成する際の方位の刻み幅 [rad]

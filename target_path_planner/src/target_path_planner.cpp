@@ -10,7 +10,9 @@ TargetPathPlanner::TargetPathPlanner():private_nh_("~")
     private_nh_.param("finish_dist", finish_dist_, {4.9});
     private_nh_.param("max_vel", max_vel_, {1.2});
     private_nh_.param("max_yawrate", max_yawrate_, {1.0});
+    private_nh_.param("max_speed", max_speed_, {3.0});
     private_nh_.param("max_steer_angle", max_steer_angle_, {20});
+    private_nh_.param("steer_angle_reso", steer_angle_reso_, {0.01});
     private_nh_.param("tread", tread_, {0.5});
     private_nh_.param("path_reso", path_reso_, {0.05});
     private_nh_.param("theta_reso", theta_reso_, {0.01});
@@ -58,21 +60,56 @@ void TargetPathPlanner::local_goal_callback(const geometry_msgs::PointStampedCon
 }
 
 // 機構的制約内で旋回可能な角度を計算
-double TargetPathPlanner::calc_rad()
+double TargetPathPlanner::calc_rad_with_steer()
 {
+    // ステア角を探索
+    for(double i=-max_steer_angle_; i<=max_steer_angle_; i+=steer_angle_reso_)
+    {
+        // ステア角の最大値をdegからradに変換
+        const double steer_angle = i / 180 * M_PI;
+
+        for(double v_r=0.0; v_r<=max_speed_; v_r+=speed_reso_)
+        {
+            for(double v_l=0.0; v_l<=max_speed_; v_l+=speed_reso_)
+            {
+                const double v_x = v_l*cos(max_steer_angle_)/2 + v_r*cos(steer_angle)/2;
+                const double v_y = v_l*sin(max_steer_angle_)/2 + v_r*sin(steer_angle)/2;
+
+                // v_xとv_yが制約を満たしていたら，最大旋回速度を探索
+                const double v = hypot(v_x, v_y);
+                const double speed_border = speed_reso_ / 10.0;
+                if((v <= max_vel_+speed_border) && (v >= max_vel_-speed_border))
+                {
+                    
+                }
+            }
+        }
+    }
+
     // ステア角の最大値をdegからradに変換
     const double steer_angle = max_steer_angle_ / 180 * M_PI;
 
-    // ステア角で変わる方位を計算
-    const double x = max_vel_ * cos(steer_angle) + tread_ / 2;
-    const double y = max_vel_ * sin(steer_angle);
-    const double theta = atan2(y, x);
+    // // ステア角で変わる方位を計算
+    // const double x = max_vel_ * cos(steer_angle) + tread_ / 2;
+    // const double y = max_vel_ * sin(steer_angle);
+    // const double theta = atan2(y, x);
 
+    // // 旋回で変わる方位の最大値を計算
+    // const double  yaw = max_yawrate_ / max_vel_ * path_reso_;
+
+    // // 2つの合計
+    // const double max_rad = theta + yaw;
+
+    // return max_rad;
+
+    // ステア角を探索
+    for(double i=-steer_angle; i<=steer_angle; i+=)
+}
+
+double TargetPathPlanner::calc_rad_no_steer()
+{
     // 旋回で変わる方位の最大値を計算
-    const double  yaw = max_yawrate_ / max_vel_ * path_reso_;
-
-    // 2つの合計
-    const double max_rad = theta + yaw;
+    const double  max_rad = max_yawrate_ / max_vel_ * path_reso_;
 
     return max_rad;
 }
@@ -344,7 +381,17 @@ void TargetPathPlanner::process()
     ros::Rate loop_rate(hz_);
     tf2_ros::TransformListener tf_listener(tf_buffer_);
 
-    double max_rad = calc_rad();
+    double max_rad = 0.0;
+
+    if(max_steer_angle_ == 0.0)
+    {
+        max_rad = calc_rad_no_steer();
+    }
+    else
+    {
+        max_rad = calc_rad_with_steer();
+    }
+
     ROS_INFO_STREAM("max_rad : " << max_rad);
 
     while(ros::ok())

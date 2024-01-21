@@ -16,10 +16,11 @@ max_yawrate: 1.0  # 最高旋回速度 [rad/s]
 
 # CCV関連
 max_steer_angle: 0  # ステア角の最大値 [deg]
+steer_angle_reso: 0.1  # ステア角を探索するときの刻み幅[deg]
 tread: 0.5           # トレッド [m]
 
 # path関連
-path_reso: 0.05   # 生成するpathの刻み幅 [m]
+path_reso: 0.1   # 生成するpathの刻み幅 [m]
 theta_reso: 0.01  # 候補となるpathを生成する際の方位の刻み幅 [rad]
 search_step: 10    # 何ステップ先まで評価値を計算するか
 

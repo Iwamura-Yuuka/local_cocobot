@@ -13,13 +13,15 @@ finish_dist: 2.0     # ロボットからノード先端までの距離 [m]
 # 速度関連
 max_vel: 1.2      # 最高並進速度 [m/s]
 max_yawrate: 1.0  # 最高旋回速度 [rad/s]
+max_speed: 3.0    # タイヤの最高回転速度 [m/s]
+speed_reso: 0.1    # 速度を探索する際の刻み幅 [m/s]
 
 # CCV関連
 max_steer_angle: 20  # ステア角の最大値 [deg]
 tread: 0.5           # トレッド [m]
 
 # path関連
-path_reso: 0.05   # 生成するpathの刻み幅 [m]
+path_reso: 0.1   # 生成するpathの刻み幅 [m]
 theta_reso: 0.01  # 候補となるpathを生成する際の方位の刻み幅 [rad]
 search_step: 10    # 何ステップ先まで評価値を計算するか
 
