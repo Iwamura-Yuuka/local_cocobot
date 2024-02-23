@@ -109,5 +109,5 @@
     <node pkg="rviz" type="rviz" name="sim_rviz" args="-d $(find pedsim_simulator)/rviz/with_ccv$(arg ns).rviz" if="$(arg visualize)"/>
 
     <!-- =============== bag record =============== -->
-    <node name="bag_rec" pkg="rosbag" type="record" args="record -a -o $(env HOME)/bag/nosteer1/test.bag"/>
+    <node name="bag_rec" pkg="rosbag" type="record" args="record -a -o $(env HOME)/bagfiles/nosteer1/test.bag"/>
 </launch>
