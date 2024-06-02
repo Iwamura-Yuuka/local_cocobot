@@ -207,6 +207,18 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             transform_and_calc_speed(current_person, selected_current_person, after_ones_x, after_ones_y);
             selected_current_people.people_states.push_back(selected_current_person);
 
+            // ロボットの速度を計算（odom座標系）
+            double 
+
+            // ロボットと歩行者が最接近する際の位置を計算
+
+
+
+
+
+
+
+
             // ロボットと歩行者の相対速度（base_footprint座標系のx軸方向）を計算
             const double relative_vel = robot_odom_.twist.twist.linear.x - selected_current_person.twist.linear.x;
             
