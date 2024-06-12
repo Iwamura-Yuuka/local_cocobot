@@ -3,7 +3,7 @@
 Local path planner considering costs based on travel predictions
 
 <p align="center">
-  <img src="https://github.com/Iwamura-Yuuka/local_cocobot/blob/main/images/coco50_demo.gif" height="400px"/>
+  <img src="https://github.com/Iwamura-Yuuka/local_cocobot/blob/main/images/coco50_demo.gif" height="500px"/>
 </p>
 
 ## Environment
