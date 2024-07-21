@@ -17,6 +17,14 @@
 #include <pedestrian_msgs/PersonState.h>
 #include <pedestrian_msgs/PeopleStates.h>
 
+// ===== 構造体 =====
+struct Coordinate
+{
+    double x;  // [m]
+    double y;  // [m]
+};
+
+// ===== クラス =====
 class PedestrianStatePredictor
 {
 public:
@@ -31,7 +39,7 @@ private:
     // 引数あり関数
     void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);                                                                                                                           // 歩行者データを取得
     double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                            // ロボットと歩行者の間の距離を計算
-    void transform_and_calc_speed(const pedestrian_msgs::PersonState& current_person, pedestrian_msgs::PersonState& selected_current_person, const double after_ones_x, const double after_ones_y);            // 歩行者情報をodomからbase_footprintに変更 & base_link座標系での速度を計算
+    double calc_speed(const double tmp_x, const double tmp_y, const double current_x, const double current_y);
     double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                           // 方位を計算
     double normalize_angle(double theta);                                                                                                                                                                      // 適切な角度(-M_PI ~ M_PI)を返す
     void transform_ped_pose(const double before_x, const double before_y,  pedestrian_msgs::PersonState& future_person);                                                                                       // 歩行者情報をodomからbase_footprintに変更
@@ -52,6 +60,7 @@ private:
     std::string people_frame_;                      // 歩行者の位置情報のframe_id
     double consider_dist_border_;                   // cost_map_createrにデータを渡す歩行者の距離 [m]
     double predict_dist_border_;                    // 歩行者の将来位置を予測する距離 [m]
+    double dt_;                                     // 微小時間 [s]
 
     // その他の変数
     double tmp_robot_x_;                            // 1ループ前のロボットのx座標格納用
