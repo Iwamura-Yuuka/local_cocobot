@@ -32,26 +32,32 @@ catkin build
 ### Proposed Method + Differential Drive Robot with Steering
 **50 pedestrians**
 ```
-roslaunch ccv_experiment coco_all50.launch
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment coco_all50.launch   # planner
 ```
 **25 pedestrians**
 ```
-roslaunch ccv_experiment coco_all25.launch
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment coco_all25.launch   # planner
 ```
 **1 pedestrian**
 ```
-roslaunch ccv_experiment coco_all1.launch
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment coco_all1.launch    # planner
 ```
 ### Proposed Method + Differential Drive Robot(without Steering)
 **50 pedestrians**
 ```
-roslaunch ccv_experiment no_steer50.launch
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment no_steer50.launch   # planner
 ```
 **25 pedestrians**
 ```
-roslaunch ccv_experiment no_steer25.launch
-```
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment no_steer25.launch   # planner
+``` 
 **1 pedestrian**
 ```
-roslaunch ccv_experiment no_steer1.launch
+roslaunch sq2_ccv_description gazebo.launch  # CCV
+roslaunch ccv_experiment no_steer1.launch    # planner
 ```
