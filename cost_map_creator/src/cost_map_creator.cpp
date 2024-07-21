@@ -29,8 +29,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     // publisher
     pub_cost_map_ = nh_.advertise<nav_msgs::OccupancyGrid>("/cost_map", 1);
 
-    // debug
-
     // --- 基本設定（コストマップ） ---
     // header
     cost_map_.header.frame_id = cost_map_frame_;
@@ -68,7 +66,6 @@ void CostMapCreator::future_people_states_callback(const pedestrian_msgs::People
 {
     future_people_states_.emplace(msg);
     flag_future_people_states_ = true;
-
 }
 
 // マップの初期化(すべて「未知」にする)
@@ -140,8 +137,8 @@ double CostMapCreator::normalize_angle(double theta)
 // マップ内の場合、trueを返す
 bool CostMapCreator::is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y)
 {
-    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
-    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+    const int index_x = int(floor((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(floor((y - map.info.origin.position.y) / map.info.resolution));
 
     if((index_x < map.info.width) && (index_y < map.info.height))
         return true;
@@ -152,8 +149,8 @@ bool CostMapCreator::is_in_map(nav_msgs::OccupancyGrid& map, const double x, con
 // 座標からグリッドのインデックスを返す
 int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y)
 {
-    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
-    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+    const int index_x = int(floor((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(floor((y - map.info.origin.position.y) / map.info.resolution));
 
     return index_x + (index_y * map.info.width);
 }
