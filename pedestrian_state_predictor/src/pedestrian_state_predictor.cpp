@@ -87,55 +87,6 @@ double PedestrianStatePredictor::calc_speed(const double tmp_x, const double tmp
     return hypot(dx, dy) * hz_;
 }
 
-// 歩行者情報をodomからbase_footprintに変更
-// base_link座標系での速度を計算
-void PedestrianStatePredictor::transform_and_calc_speed(const pedestrian_msgs::PersonState& current_person, pedestrian_msgs::PersonState& selected_current_person, const double after_ones_x, const double after_ones_y)
-{
-    geometry_msgs::TransformStamped tf;
-
-     // 歩行者情報をodomからbase_footprintに変更
-    try
-    {
-        tf = tf_buffer_.lookupTransform(people_frame_, sim_frame_, ros::Time(0));
-        flag_frame_change_ = true;
-
-        geometry_msgs::Pose person_pose_before;    // 座標変換前の歩行者位置格納用
-        geometry_msgs::Pose person_pose_after;     // 座標変換後の歩行者位置格納用
-
-        person_pose_before = current_person.pose;
-
-        // 歩行者の現在位置をdoTransformで座標変換
-        tf2::doTransform(person_pose_before, person_pose_after, tf);
-
-        selected_current_person.id = current_person.id;
-        selected_current_person.pose.position = person_pose_after.position;
-        selected_current_person.pose.orientation.x = 0.0;
-        selected_current_person.pose.orientation.y = 0.0;
-        selected_current_person.pose.orientation.z = 0.0;
-        selected_current_person.pose.orientation.w = 0.0;
-
-        geometry_msgs::Pose after_ones_person_pose_before;    // 座標変換前の1秒後の歩行者位置格納用
-        geometry_msgs::Pose after_ones_person_pose_after;     // 座標変換後の1秒後の歩行者位置格納用
-
-        after_ones_person_pose_before.position.x = after_ones_x;
-        after_ones_person_pose_before.position.y = after_ones_y;
-
-        // 1秒後の歩行者位置をdoTransformで座標変換
-        tf2::doTransform(after_ones_person_pose_before, after_ones_person_pose_after, tf);
-       
-        // base_footprint座標系における現在の歩行者位置と1秒後の歩行者位置の予測から，速度を計算
-        selected_current_person.twist.linear.x = after_ones_person_pose_after.position.x - selected_current_person.pose.position.x;
-        selected_current_person.twist.linear.y = after_ones_person_pose_after.position.y - selected_current_person.pose.position.y;
-
-    }
-    catch(tf2::TransformException& ex)
-    {
-        ROS_WARN("%s", ex.what());
-        flag_frame_change_ = false;
-        return;
-    }
-}
-
 // 方位を計算
 double PedestrianStatePredictor::calc_direction(const double x1, const double y1, const double x2, const double y2)
 {
@@ -270,21 +221,6 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             // base_footprint座標系での歩行者の現在データを格納
             selected_current_people.people_states.push_back(selected_current_person);
     
-            // 歩行者の現在位置をbase_footprint座標系に変換
-            // base_link座標系での速度を計算
-            // transform_and_calc_speed(current_person, selected_current_person, after_ones_x, after_ones_y);
-            // selected_current_people.people_states.push_back(selected_current_person);
-
-            // ロボットと歩行者の相対速度（base_footprint座標系のx軸方向）を計算
-            // const double relative_vel = robot_odom_.twist.twist.linear.x - selected_current_person.twist.linear.x;
-
-            // if((flag_prediction_ == true) && (dist <= predict_dist_border_) && (relative_vel > 0))
-                // predict_time = dist / relative_vel;
-
-            // 将来位置を計算
-            // const double future_x = current_person.pose.position.x + (current_person.twist.linear.x * predict_time);
-            // const double future_y = current_person.pose.position.y + (current_person.twist.linear.y * predict_time);
-
             // ロボットの進行方向の方位を計算
             const double robot_theta = calc_direction(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);
 
@@ -330,10 +266,6 @@ void PedestrianStatePredictor::visualize_people_pose(const pedestrian_msgs::Peop
         person_pose.position.x = person.pose.position.x;
         person_pose.position.y = person.pose.position.y;
         person_pose.orientation = person.pose.orientation;
-        // person_pose.orientation.x = person.pose.orientation.x;
-        // person_pose.orientation.y = person.pose.orientation.y;
-        // person_pose.orientation.z = person.pose.orientation.z;
-        // person_pose.orientation.w = person.pose.orientation.w;
         people_poses.poses.push_back(person_pose);
     }
 
@@ -363,6 +295,7 @@ void PedestrianStatePredictor::update_ped_state()
         // ロボットに近い歩行者の現在位置（base_footprint）の可視化
         if(visualize_selected_current_people_poses_)
             visualize_people_pose(selected_current_people, pub_selected_current_ped_poses_, now);
+
         // 歩行者の将来位置（予測）の可視化
         if(visualize_future_people_poses_)
             visualize_people_pose(future_people, pub_future_ped_poses_, now);

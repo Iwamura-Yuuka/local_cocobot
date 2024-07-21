@@ -40,7 +40,6 @@ private:
     void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);                                                                                                                           // 歩行者データを取得
     double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                            // ロボットと歩行者の間の距離を計算
     double calc_speed(const double tmp_x, const double tmp_y, const double current_x, const double current_y);
-    void transform_and_calc_speed(const pedestrian_msgs::PersonState& current_person, pedestrian_msgs::PersonState& selected_current_person, const double after_ones_x, const double after_ones_y);            // 歩行者情報をodomからbase_footprintに変更 & base_link座標系での速度を計算
     double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                           // 方位を計算
     double normalize_angle(double theta);                                                                                                                                                                      // 適切な角度(-M_PI ~ M_PI)を返す
     void transform_ped_pose(const double before_x, const double before_y,  pedestrian_msgs::PersonState& future_person);                                                                                       // 歩行者情報をodomからbase_footprintに変更
