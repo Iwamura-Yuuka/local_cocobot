@@ -28,7 +28,6 @@ private:
     // コールバック関数
     void current_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg);
     void future_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg);
-    // void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     // 引数あり関数
     void init_map(nav_msgs::OccupancyGrid& map);                                                                                                                                                        // マップの初期化(すべて「未知」にする)
@@ -40,7 +39,7 @@ private:
     bool is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y);                                                                                                                       // マップ内の場合、trueを返す
     int xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y);                                                                                                                 // 座標からグリッドのインデックスを返す
     void search_grid_size(std::vector<Coordinate>& side, const double start_x, const double start_y, const double length, const double theta);                                                          // マスを探索
-    double count_grid(const std::vector<Coordinate> side, std::vector<Coordinate>& cost_side, const double person_x, const double person_y);                                                      // 走行コストを割り当てるマスをカウント
+    double count_grid(const std::vector<Coordinate> side, std::vector<Coordinate>& cost_side, const double person_x, const double person_y);                                                            // 走行コストを割り当てるマスをカウント
     void assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index);                                                                            // person_map_にコストを割り当てる
     double calc_distance(const double person_x, const double person_y, const double x, const double y);                                                                                                 // 歩行者位置までの距離を計算
     double calc_short_side_length(const double x, const double a, const double b);                                                                                                                      // 長軸方向の位置から対応する短軸方向の長さを計算
@@ -72,7 +71,7 @@ private:
     double weight_speed_;            // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;           // 歩行者の歩く速さの最大値 [m/s]
     double count_reso_;              // コストを割り当てる際に計算する座標の刻み幅 [m]
-    double min_cost_;                   // 割り当てるコストの最小値
+    double min_cost_;                // 割り当てるコストの最小値
 
     // msgの受け取り判定用
     bool flag_current_people_states_ = false;

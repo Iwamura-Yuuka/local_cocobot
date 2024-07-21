@@ -29,8 +29,6 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     // publisher
     pub_cost_map_ = nh_.advertise<nav_msgs::OccupancyGrid>("/cost_map", 1);
 
-    // debug
-
     // --- 基本設定（コストマップ） ---
     // header
     cost_map_.header.frame_id = cost_map_frame_;
@@ -52,7 +50,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     person_map_.info.height     = int(round(map_size_/map_reso_));
     person_map_.info.origin.position.x = 0.0;
     person_map_.info.origin.position.y = -map_size_/2.0;
-    // // data
+    // data
     person_map_.data.reserve(person_map_.info.width * person_map_.info.height);
 }
 
@@ -68,7 +66,6 @@ void CostMapCreator::future_people_states_callback(const pedestrian_msgs::People
 {
     future_people_states_.emplace(msg);
     flag_future_people_states_ = true;
-
 }
 
 // マップの初期化(すべて「未知」にする)
@@ -140,8 +137,8 @@ double CostMapCreator::normalize_angle(double theta)
 // マップ内の場合、trueを返す
 bool CostMapCreator::is_in_map(nav_msgs::OccupancyGrid& map, const double x, const double y)
 {
-    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
-    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+    const int index_x = int(floor((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(floor((y - map.info.origin.position.y) / map.info.resolution));
 
     if((index_x < map.info.width) && (index_y < map.info.height))
         return true;
@@ -152,8 +149,8 @@ bool CostMapCreator::is_in_map(nav_msgs::OccupancyGrid& map, const double x, con
 // 座標からグリッドのインデックスを返す
 int CostMapCreator::xy_to_grid_index(nav_msgs::OccupancyGrid& map, const double x, const double y)
 {
-    const int index_x = int(round((x - map.info.origin.position.x) / map.info.resolution));
-    const int index_y = int(round((y - map.info.origin.position.y) / map.info.resolution));
+    const int index_x = int(floor((x - map.info.origin.position.x) / map.info.resolution));
+    const int index_y = int(floor((y - map.info.origin.position.y) / map.info.resolution));
 
     return index_x + (index_y * map.info.width);
 }
@@ -339,8 +336,6 @@ void CostMapCreator::search_grid_size(std::vector<Coordinate>& side, const doubl
             }
         }
     }
-
-    // return grid_counter;
 }
 
 // 走行コストを割り当てるマスをカウント
@@ -457,7 +452,7 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         // 走行コストを割り当てるマスをカウント
         const double short_plus_grid_size = count_grid(short_side_plus, cost_short_side_plus, person_x, person_y);
 
-         double short_plus_grid_size2;  // ゼロ割を防ぐためのもの
+        double short_plus_grid_size2;  // ゼロ割を防ぐためのもの
         if(short_plus_grid_size == 0)
             short_plus_grid_size2 = 1.0;
         else
@@ -506,7 +501,6 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
             if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
                 assign_cost_for_person_cost_map(short_minus_point.x, short_minus_point.y, short_minus_cost, min_index, max_index);
         }
-
     }
 }
 
@@ -670,20 +664,9 @@ void CostMapCreator::create_cost_map()
     const auto current_people = current_people_states_.front();
     const auto future_people = future_people_states_.front();
     
-    // デバック用にタイムスタンプを表示
-    // ROS_INFO_STREAM("--- TimeStamp ---");
-    // ROS_INFO_STREAM("sec : " << future_people->header.stamp.sec);
-    // ROS_INFO_STREAM("nsec : " << future_people->header.stamp.nsec);
-    
     // 予測した歩行者の将来位置に対して走行コストを計算
     for(const auto& future_person : future_people->people_states)
     {
-        // デバック用に歩行者の将来情報を表示
-        // ROS_INFO_STREAM("--- future ---");
-        // ROS_INFO_STREAM("id : " << future_person.id);
-        // ROS_INFO_STREAM("position_x : " << future_person.pose.position.x);
-        // ROS_INFO_STREAM("linear_x" << future_person.twist.linear.x);
-
         // 対応する現在の歩行者情報を探索
         for(const auto& person : current_people->people_states)
         {
@@ -691,12 +674,6 @@ void CostMapCreator::create_cost_map()
             {
                 current_person = person;
                 flag_ped_data_matching_ = true;
-
-                // デバック用に歩行者の将来情報を表示
-                // ROS_INFO_STREAM("--- current ---");
-                // ROS_INFO_STREAM("id : " << current_person.id);
-                // ROS_INFO_STREAM("position_x : " << current_person.pose.position.x);
-                // ROS_INFO_STREAM("linear_x : " << current_person.twist.linear.x);
 
                 // パーソンマップの初期化
                 init_map(person_map_);
