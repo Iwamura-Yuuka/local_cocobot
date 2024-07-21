@@ -23,3 +23,6 @@ people_frame: "base_footprint"  # 歩行者
 # 予測範囲
 consider_dist_border: 8.0       # cost_map_createrにデータを渡す歩行者の距離 [m]
 predict_dist_border: 3.0        # 歩行者の将来位置を予測する距離 [m]
+
+# 予測時間 [s]
+dt: 0.1                         # 微小時間 [s]
