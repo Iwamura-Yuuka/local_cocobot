@@ -36,7 +36,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     cost_map_.info.resolution = map_reso_;
     cost_map_.info.width      = int(round(map_size_/map_reso_));
     cost_map_.info.height     = int(round(map_size_/map_reso_));
-    cost_map_.info.origin.position.x = 0.0;
+    cost_map_.info.origin.position.x = -map_size_/2.0;
     cost_map_.info.origin.position.y = -map_size_/2.0;
     // data
     cost_map_.data.reserve(cost_map_.info.width * cost_map_.info.height);
@@ -48,7 +48,7 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     person_map_.info.resolution = map_reso_;
     person_map_.info.width      = int(round(map_size_/map_reso_));
     person_map_.info.height     = int(round(map_size_/map_reso_));
-    person_map_.info.origin.position.x = 0.0;
+    person_map_.info.origin.position.x = -map_size_/2.0;
     person_map_.info.origin.position.y = -map_size_/2.0;
     // data
     person_map_.data.reserve(person_map_.info.width * person_map_.info.height);
