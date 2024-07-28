@@ -19,7 +19,7 @@ private:
     void robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
     //引数なし関数
-    double calc_dist_to_local_goal();   // local_goalまでの距離を計算
+    double calc_dist_to_local_goal();   // local_goalまでの（x軸方向）距離を計算
     void update_local_goal();           // local_goalの更新
 
     //yamlファイルで設定可能な変数
