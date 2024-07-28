@@ -231,16 +231,24 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             const double theta = person_theta - robot_theta;
 
             // ロボットの進行方向前方に移動する歩行者のみ考慮
-            if((theta <= M_PI/2) && (theta >= -M_PI/2))
-            {
-                // 歩行者の予測データを格納
-                future_person.id = current_person.id;
-                transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
-                future_person.twist.linear.x = selected_current_person.twist.linear.x;
-                future_person.twist.linear.y = selected_current_person.twist.linear.y;
+            // if((theta <= M_PI/2) && (theta >= -M_PI/2))
+            // {
+            //     // 歩行者の予測データを格納
+            //     future_person.id = current_person.id;
+            //     transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
+            //     future_person.twist.linear.x = selected_current_person.twist.linear.x;
+            //     future_person.twist.linear.y = selected_current_person.twist.linear.y;
 
-                future_people.people_states.push_back(future_person);
-            }
+            //     future_people.people_states.push_back(future_person);
+            // }
+
+            // 歩行者の予測データを格納
+            future_person.id = current_person.id;
+            transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
+            future_person.twist.linear.x = selected_current_person.twist.linear.x;
+            future_person.twist.linear.y = selected_current_person.twist.linear.y;
+
+            future_people.people_states.push_back(future_person);
         }
     }
 
