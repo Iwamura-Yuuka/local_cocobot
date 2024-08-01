@@ -76,8 +76,6 @@ double TargetPathPlanner::calc_rad_with_steer()
         {
             for(double v_l=speed_reso_; v_l<=max_speed_; v_l+=speed_reso_)
             {
-                // ROS_INFO_STREAM("aaaaaaaaaaaaa");
-
                 const double v_x = v_l*cos(max_steer_angle_rad)/2 + v_r*cos(steer_angle)/2;
                 const double v_y = v_l*sin(max_steer_angle_rad)/2 + v_r*sin(steer_angle)/2;
 
@@ -239,8 +237,8 @@ double TargetPathPlanner::normalize_angle(double theta)
 // 座標からグリッドのインデックスを返す
 int TargetPathPlanner::xy_to_grid_index(const double x, const double y)
 {
-    const int index_x = int(round((x - cost_map_.info.origin.position.x) / cost_map_.info.resolution));
-    const int index_y = int(round((y - cost_map_.info.origin.position.y) / cost_map_.info.resolution));
+    const int index_x = int(floor((x - cost_map_.info.origin.position.x) / cost_map_.info.resolution));
+    const int index_y = int(floor((y - cost_map_.info.origin.position.y) / cost_map_.info.resolution));
 
     return index_x + (index_y * cost_map_.info.width);
 }
