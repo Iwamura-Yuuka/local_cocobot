@@ -11,4 +11,4 @@ dist_to_update_local_goal: 8.0  # local_goalを更新する基準となるロボ
 
 # global_path
 global_path_index: 100          # 探索し始めるglobal_pathのインデックス
-index_step: 5                   # 1回で更新するインデックス数
+index_step: 10                   # 1回で更新するインデックス数
