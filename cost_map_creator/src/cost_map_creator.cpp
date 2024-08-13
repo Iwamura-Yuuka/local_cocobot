@@ -57,6 +57,13 @@ CostMapCreator::CostMapCreator():private_nh_("~")
 // 現在の歩行者情報のコールバック関数
 void CostMapCreator::current_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
+    while(current_people_states_.size() > 0)
+    {
+        // current_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
+        // これをしないと，front() でデータを取得する際，同じデータしか取得できない
+        current_people_states_.pop();
+    }
+    
     current_people_states_.emplace(msg);
     flag_current_people_states_ = true;
 }
@@ -64,6 +71,13 @@ void CostMapCreator::current_people_states_callback(const pedestrian_msgs::Peopl
 // 予測した歩行者情報のコールバック関数
 void CostMapCreator::future_people_states_callback(const pedestrian_msgs::PeopleStatesConstPtr& msg)
 {
+    while(future_people_states_.size() > 0)
+    {
+        // future_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
+        // これをしないと，front() でデータを取得する際，同じデータしか取得できない
+        future_people_states_.pop();
+    }
+
     future_people_states_.emplace(msg);
     flag_future_people_states_ = true;
 }
@@ -704,11 +718,6 @@ void CostMapCreator::create_cost_map()
     }
 
     pub_cost_map_.publish(cost_map_);
-
-    // current_people_states_とfuture_people_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
-    // これをしないと，front() でデータを取得する際，同じデータしか取得できない
-    current_people_states_.pop();
-    future_people_states_.pop();
 }
 
 //メイン文で実行する関数
