@@ -34,6 +34,13 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 // 歩行者データのコールバック関数
 void PedestrianStatePredictor::pedestrian_data_callback(const pedsim_msgs::AgentStatesConstPtr& agents)
 {
+    while(ped_states_.size() > 0)
+    {
+        // ped_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
+        // これをしないと，front() でデータを取得する際，同じデータしか取得できない
+        ped_states_.pop();
+    }
+
     ped_states_.emplace(agents);
     flag_ped_states_ = true;
 }
@@ -308,10 +315,6 @@ void PedestrianStatePredictor::update_ped_state()
         if(visualize_future_people_poses_)
             visualize_people_pose(future_people, pub_future_ped_poses_, now);
     }
-
-    // ped_states_の配列のうち取得済みのデータ（配列の先頭の要素）を削除
-    // これをしないと，front() でデータを取得する際，同じデータしか取得できない
-    ped_states_.pop();
 
     // ロボットの位置を格納
     tmp_robot_x_ = robot_odom_.pose.pose.position.x;
