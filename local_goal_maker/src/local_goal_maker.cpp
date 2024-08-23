@@ -30,13 +30,14 @@ void LocalGoalMaker::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg
     flag_robot_odom_ = true;
 }
 
-// local_goalまでの距離を計算
+// local_goalまでの（x軸方向）距離を計算
 double LocalGoalMaker::calc_dist_to_local_goal()
 {
     double dx = global_path_.poses[global_path_index_].pose.position.x - robot_odom_.pose.pose.position.x;
-    double dy = global_path_.poses[global_path_index_].pose.position.y - robot_odom_.pose.pose.position.y;
+    // double dy = global_path_.poses[global_path_index_].pose.position.y - robot_odom_.pose.pose.position.y;
 
-    return hypot(dx, dy);
+    // return hypot(dx, dy);
+    return dx;
 }
 
 //local_goalの更新
