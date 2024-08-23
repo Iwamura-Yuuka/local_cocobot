@@ -102,7 +102,6 @@ double TargetPathPlanner::calc_rad_with_steer()
 
 
                     }
-                        // max_omega = omega;
                 }
             }
         }
@@ -111,20 +110,6 @@ double TargetPathPlanner::calc_rad_with_steer()
     ROS_INFO_STREAM("max: " << max_omega);
 
     const double  max_rad = max_omega / max_vel_ * path_reso_;
-
-    // ステア角の最大値をdegからradに変換
-    // const double steer_angle = max_steer_angle_ / 180 * M_PI;
-
-    // // ステア角で変わる方位を計算
-    // const double x = max_vel_ * cos(steer_angle) + tread_ / 2;
-    // const double y = max_vel_ * sin(steer_angle);
-    // const double theta = atan2(y, x);
-
-    // // 旋回で変わる方位の最大値を計算
-    // const double  yaw = max_yawrate_ / max_vel_ * path_reso_;
-
-    // // 2つの合計
-    // const double max_rad = theta + yaw;
 
     return max_rad;
 
@@ -318,10 +303,8 @@ void TargetPathPlanner::create_path(const double max_rad)
     // local_goalに近づくまでノードを探索
     while(flag_goal_check_ == false)
     {
-        // ROS_INFO_STREAM("----- search_node start -----");
         search_node(max_rad, nodes);
         step_counter++;
-        // ROS_INFO_STREAM("----- search_node finish -----");
 
         // 終了判定
         if(is_goal_check(nodes.back().x, nodes.back().y) == true)
@@ -330,16 +313,6 @@ void TargetPathPlanner::create_path(const double max_rad)
             flag_goal_check_ = true;
         else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
             flag_goal_check_ = true;
-        // if(is_goal_check(nodes.back().x, nodes.back().y) == true)
-        // {
-        //     flag_goal_check_ = true;
-        //     break;
-        // }
-        // else if(is_finish_check(nodes.back().x, nodes.back().y) == true)
-        // {
-        //     flag_goal_check_ = true;
-        //     break;
-        // }
         
         // 今回の探索結果を格納
         tmp_x_ = nodes.back().x;
@@ -347,8 +320,6 @@ void TargetPathPlanner::create_path(const double max_rad)
         tmp_yaw_ = nodes.back().yaw;
     }
     
-    // ROS_INFO_STREAM("step : " << step_counter);
-
     // 探索し終わったノード情報から目標軌道を生成
     transform_node_to_path(nodes, path);
 
@@ -422,7 +393,6 @@ void TargetPathPlanner::process()
     {
         if((flag_cost_map_ == true) && (flag_local_goal_ == true))
         {
-            // ROS_INFO_STREAM("get map & local_goal!!");
             create_path(max_rad);
         }
 
