@@ -95,23 +95,23 @@ double PedestrianStatePredictor::calc_speed(const double tmp_x, const double tmp
 }
 
 // 方位を計算
-double PedestrianStatePredictor::calc_direction(const double x1, const double y1, const double x2, const double y2)
-{
-    const double theta = atan2(y2 - y1, x2 - x1);
+// double PedestrianStatePredictor::calc_direction(const double x1, const double y1, const double x2, const double y2)
+// {
+//     const double theta = atan2(y2 - y1, x2 - x1);
 
-    return normalize_angle(theta);
-}
+//     return normalize_angle(theta);
+// }
 
 // 適切な角度(-M_PI ~ M_PI)を返す
-double PedestrianStatePredictor::normalize_angle(double theta)
-{
-    if(theta > M_PI)
-        theta -= 2.0 * M_PI;
-    if(theta < -M_PI)
-        theta += 2.0 * M_PI;
+// double PedestrianStatePredictor::normalize_angle(double theta)
+// {
+//     if(theta > M_PI)
+//         theta -= 2.0 * M_PI;
+//     if(theta < -M_PI)
+//         theta += 2.0 * M_PI;
 
-    return theta;
-}
+//     return theta;
+// }
 
 // 歩行者情報をodomからbase_footprintに変更
 void PedestrianStatePredictor::transform_ped_pose(const double before_x, const double before_y, pedestrian_msgs::PersonState& future_person)
@@ -229,25 +229,13 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             selected_current_people.people_states.push_back(selected_current_person);
     
             // ロボットの進行方向の方位を計算
-            const double robot_theta = calc_direction(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);
+            // const double robot_theta = calc_direction(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);
 
             // ロボットに対する歩行者の将来位置の方位を計算
-            const double person_theta = calc_direction(robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y, future_x, future_y);
+            // const double person_theta = calc_direction(robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y, future_x, future_y);
 
             // ロボットに対する歩行者の将来位置の方位を計算
-            const double theta = person_theta - robot_theta;
-
-            // ロボットの進行方向前方に移動する歩行者のみ考慮
-            // if((theta <= M_PI/2) && (theta >= -M_PI/2))
-            // {
-            //     // 歩行者の予測データを格納
-            //     future_person.id = current_person.id;
-            //     transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
-            //     future_person.twist.linear.x = selected_current_person.twist.linear.x;
-            //     future_person.twist.linear.y = selected_current_person.twist.linear.y;
-
-            //     future_people.people_states.push_back(future_person);
-            // }
+            // const double theta = person_theta - robot_theta;
 
             // 歩行者の予測データを格納
             future_person.id = current_person.id;

@@ -40,8 +40,8 @@ private:
     void get_ped_data(pedestrian_msgs::PeopleStates& current_people, ros::Time now);                                                                                                                           // 歩行者データを取得
     double calc_distance(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                            // ロボットと歩行者の間の距離を計算
     double calc_speed(const double tmp_x, const double tmp_y, const double current_x, const double current_y);
-    double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                           // 方位を計算
-    double normalize_angle(double theta);                                                                                                                                                                      // 適切な角度(-M_PI ~ M_PI)を返す
+    // double calc_direction(const double robot_x, const double robot_y, const double person_x, const double person_y);                                                                                           // 方位を計算
+    // double normalize_angle(double theta);                                                                                                                                                                      // 適切な角度(-M_PI ~ M_PI)を返す
     void transform_ped_pose(const double before_x, const double before_y,  pedestrian_msgs::PersonState& future_person);                                                                                       // 歩行者情報をodomからbase_footprintに変更
     void predict_future_ped_states(const pedestrian_msgs::PeopleStates& current_people, pedestrian_msgs::PeopleStates& future_people, pedestrian_msgs::PeopleStates& selected_current_people, ros::Time now);  // 歩行者の将来位置を予測
     void visualize_people_pose(const pedestrian_msgs::PeopleStates& people, const ros::Publisher& pub_people_poses, ros::Time now);                                                                            // 歩行者の位置情報を可視化
