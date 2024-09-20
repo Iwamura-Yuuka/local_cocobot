@@ -11,11 +11,11 @@ hz: 12              # ループ周波数 [Hz]
 
 # frame_id
 people_frame: "base_footprint"     # 歩行者
-cost_map_frame: "base_footprint"  # コストマップ
+cost_map_frame: "base_footprint"   # コストマップ
 
 # map
 map_size: 10.0    # マップの一辺の長さ [m]
-map_reso: 0.05  # マップの解像度 [m/cell]
+map_reso: 0.05    # マップの解像度 [m/cell]
 
 # 楕円のサイズ
 ellipse_front_long_max: 2.0  # 楕円の長軸（歩行者の進行方向前方）の最大値 [m]
@@ -26,7 +26,7 @@ ellipse_short_max: 1.8       # 楕円の短軸の最大値 [m]
 ellipse_short_min: 1.0       # 楕円の短軸の最小値 [m]
 
 # 歩行者サイズ
-margin: 0.5                 # 衝突半径 [m]
+margin: 0.5                  # 衝突半径 [m]
 
 # 楕円のサイズを決める際の重み定数（2つの合計が1になるように設定する）
 weight_distance: 0.5         # ロボットからの距離に関する項
