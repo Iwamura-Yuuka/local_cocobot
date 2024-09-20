@@ -12,7 +12,6 @@ visualize_future_people_poses: true            # 歩行者の将来位置（予�
 flag_prediction: true
 # flag_prediction: false
 
-
 # 制御周波数[Hz]
 hz: 10                          # ループ周波数 [Hz]
 
