@@ -151,6 +151,8 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             double future_x = current_person.pose.position.x;
             double future_y = current_person.pose.position.y;
 
+            double predict_time = 0.0;  // pubする予測時間格納用
+
             // 将来位置を計算
             if((flag_prediction_ == true) && (dist <= predict_dist_border_))
             {
@@ -158,7 +160,8 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
                 double robot_vel = calc_speed(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);           
 
                 // 何秒先の将来位置を予測するか
-                double predict_time = 0.0;  // 相対速度が0以下の場合は，現在位置を予測位置とする
+                // 相対速度が0以下の場合は，現在位置を予測位置とする
+                double time = 0.0;  // 予測時間計算用
 
                 // ロボットと歩行者の最小距離
                 double min_dist = consider_dist_border_;  // とりうる最大値で初期化
@@ -167,21 +170,22 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
                 while(dist <= min_dist)
                 {
                     // 予測時刻を計算
-                    predict_time += dt_;
+                    time += dt_;
 
                     // 歩行者の予測位置を計算（odom座標系）
-                    const double predict_ped_x = current_person.pose.position.x + (current_person.twist.linear.x * predict_time);
-                    const double predict_ped_y = current_person.pose.position.y + (current_person.twist.linear.y * predict_time);
+                    const double predict_ped_x = current_person.pose.position.x + (current_person.twist.linear.x * time);
+                    const double predict_ped_y = current_person.pose.position.y + (current_person.twist.linear.y * time);
 
                     // ロボットと歩行者の距離を計算
-                    dist = calc_distance(robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y, predict_ped_x, predict_ped_y) - (robot_vel * predict_time);
+                    dist = calc_distance(robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y, predict_ped_x, predict_ped_y) - (robot_vel * time);
 
-                    // 最小距離と将来位置を更新
+                    // 最小距離と将来位置，予測時間を更新
                     if((dist < min_dist) && (dist >= 0))
                     {
                         min_dist = dist;
                         future_x = predict_ped_x;
                         future_y = predict_ped_y;
+                        predict_time = time;
                     }
                     else if(dist < 0)
                     {
@@ -214,6 +218,7 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             transform_ped_pose(future_x, future_y, future_person);  //歩行者の将来位置をbase_footprint座標系に変換
             future_person.twist.linear.x = selected_current_person.twist.linear.x;
             future_person.twist.linear.y = selected_current_person.twist.linear.y;
+            future_person.predict_time = predict_time;
 
             future_people.people_states.push_back(future_person);
         }
