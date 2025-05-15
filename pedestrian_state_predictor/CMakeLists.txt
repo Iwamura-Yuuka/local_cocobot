@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.0.2)
 project(pedestrian_state_predictor)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11 -O3 -g -Wall)
+# add_compile_options(-std=c++11 -O3 -g -Wall)
+add_compile_options(-std=c++17 -O3 -g -Wall)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
