@@ -34,10 +34,10 @@ void LocalGoalMaker::robot_odom_callback(const nav_msgs::Odometry::ConstPtr& msg
 double LocalGoalMaker::calc_dist_to_local_goal()
 {
     double dx = global_path_.poses[global_path_index_].pose.position.x - robot_odom_.pose.pose.position.x;
-    // double dy = global_path_.poses[global_path_index_].pose.position.y - robot_odom_.pose.pose.position.y;
+    double dy = global_path_.poses[global_path_index_].pose.position.y - robot_odom_.pose.pose.position.y;
 
-    // return hypot(dx, dy);
-    return dx;
+    return sqrt(dx*dx + dy*dy);
+    // return dx;
 }
 
 //local_goalの更新
@@ -81,7 +81,7 @@ void LocalGoalMaker::process()
         }
 
         // msgの受け取り判定用flagをfalseに戻す
-        flag_global_path_ = false;
+        // flag_global_path_ = false;
         flag_robot_odom_ = false;
 
         ros::spinOnce();
