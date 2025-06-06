@@ -49,6 +49,7 @@ private:
 
     // yamlファイルで設定可能な変数
     int hz_;                                        // ループ周波数 [Hz]
+    bool flag_debug_;                               // デバッグ用のフラグ
     bool visualize_current_people_poses_;           // 歩行者の現在位置（odom）を可視化するかの設定用
     bool visualize_selected_current_people_poses_;  // ロボットに近い歩行者の現在位置（base_footprint）を可視化するかの設定用
     bool visualize_future_people_poses_;            // 予測した歩行者の将来位置を可視化するかの設定用

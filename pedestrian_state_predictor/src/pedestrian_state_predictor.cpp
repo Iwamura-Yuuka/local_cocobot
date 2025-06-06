@@ -4,6 +4,7 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
 {
     // param
     private_nh_.param("hz", hz_, {10});
+    private_nh_.param("flag_debug", flag_debug_, {false});
     private_nh_.param("visualize_current_people_poses", visualize_current_people_poses_, {false});
     private_nh_.param("visualize_selected_current_people_poses", visualize_selected_current_people_poses_, {false});
     private_nh_.param("visualize_future_people_poses", visualize_future_people_poses_, {false});
@@ -82,7 +83,7 @@ double PedestrianStatePredictor::calc_distance(const double robot_x, const doubl
     const double dx = person_x - robot_x;
     const double dy = person_y - robot_y;
 
-    return hypot(dx, dy);
+    return sqrt(dx*dx + dy*dy);
 }
 
 // 速度を計算
@@ -91,7 +92,7 @@ double PedestrianStatePredictor::calc_speed(const double tmp_x, const double tmp
     const double dx = current_x - tmp_x;
     const double dy = current_y - tmp_y;
 
-    return hypot(dx, dy) * hz_;
+    return sqrt(dx*dx + dy*dy) * hz_;
 }
 
 // 歩行者情報をodomからbase_footprintに変更
@@ -139,6 +140,9 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
     selected_current_people.header.stamp = now;
     selected_current_people.header.frame_id = people_frame_;
 
+    // ロボットの速度を計算（odom座標系）
+    double robot_vel = calc_speed(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);
+
     for(const auto& current_person : current_people.people_states)
     {
         // ロボットと歩行者の間の距離を計算
@@ -156,8 +160,8 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
             // 将来位置を計算
             if((flag_prediction_ == true) && (dist <= predict_dist_border_))
             {
-                // ロボットの速度を計算（odom座標系）
-                double robot_vel = calc_speed(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);           
+                // // ロボットの速度を計算（odom座標系）
+                // double robot_vel = calc_speed(tmp_robot_x_, tmp_robot_y_, robot_odom_.pose.pose.position.x, robot_odom_.pose.pose.position.y);           
 
                 // 何秒先の将来位置を予測するか
                 // 相対速度が0以下の場合は，現在位置を予測位置とする
@@ -263,21 +267,25 @@ void PedestrianStatePredictor::update_ped_state()
     // 歩行者データを取得
     get_ped_data(current_people, now);
 
-    // 歩行者の現在位置（odom）の可視化
-    if(visualize_current_people_poses_)
-        visualize_people_pose(current_people, pub_current_ped_poses_, now);
+    // // 歩行者の現在位置（odom）の可視化
+    // if(visualize_current_people_poses_)
+    //     visualize_people_pose(current_people, pub_current_ped_poses_, now);
 
     // 歩行者の将来位置を予測
     predict_future_ped_states(current_people, future_people, selected_current_people, now);
 
-    if(flag_frame_change_ == true)
+    if(flag_debug_)
     {
+        // 歩行者の現在位置（odom）の可視化
+        if(visualize_current_people_poses_)
+            visualize_people_pose(current_people, pub_current_ped_poses_, now);
+
         // ロボットに近い歩行者の現在位置（base_footprint）の可視化
-        if(visualize_selected_current_people_poses_)
+        if(visualize_selected_current_people_poses_ && flag_frame_change_)
             visualize_people_pose(selected_current_people, pub_selected_current_ped_poses_, now);
 
         // 歩行者の将来位置（予測）の可視化
-        if(visualize_future_people_poses_)
+        if(visualize_future_people_poses_ && flag_frame_change_)
             visualize_people_pose(future_people, pub_future_ped_poses_, now);
     }
 
