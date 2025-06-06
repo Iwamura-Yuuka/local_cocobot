@@ -99,17 +99,18 @@ void CostMapCreator::init_map(nav_msgs::OccupancyGrid& map)
 // 速さを計算
 double CostMapCreator::calc_speed(const double linear_x, const double linear_y)
 {
-    const double abs_linear_x = abs(linear_x);
-    const double abs_linear_y = abs(linear_y);
+    // const double abs_linear_x = abs(linear_x);
+    // const double abs_linear_y = abs(linear_y);
 
-    return hypot(abs_linear_x, abs_linear_y);
+    // return hypot(abs_linear_x, abs_linear_y);
+    return sqrt(linear_x*linear_x + linear_y*linear_y);
 }
 
 // 楕円の長軸の長さのパラメーターを計算
 double CostMapCreator::calc_ellipse_long_param(const pedestrian_msgs::PersonState& person)
 {
     // ロボットからの距離を計算
-    const double dist = hypot(person.pose.position.x, person.pose.position.y);
+    const double dist = sqrt(person.pose.position.x*person.pose.position.x + person.pose.position.y*person.pose.position.y);
     const double normalize_dist = dist / map_size_;  // 正規化
 
     // 歩行者の速さを計算
@@ -123,7 +124,7 @@ double CostMapCreator::calc_ellipse_long_param(const pedestrian_msgs::PersonStat
 double CostMapCreator::calc_ellipse_short_param(const double x, const double y)
 {
     // ロボットからの距離を計算
-    const double dist = hypot(x, y);
+    const double dist = sqrt(x*x + y*y);
     const double normalize_dist = dist / map_size_;  // 正規化
 
     return normalize_dist;
@@ -403,7 +404,7 @@ double CostMapCreator::calc_distance(const double person_x, const double person_
     const double dx = x - person_x;
     const double dy = y - person_y;
 
-    return hypot(dx, dy);
+    return sqrt(dx*dx + dy*dy);
 }
 
 // 長軸方向の位置から対応する短軸方向の長さを計算
