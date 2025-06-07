@@ -80,7 +80,7 @@ double TargetPathPlanner::calc_rad_with_steer()
                 const double v_y = v_l*sin(max_steer_angle_rad)/2 + v_r*sin(steer_angle)/2;
 
                 // v_xとv_yが制約を満たしていたら，最大旋回速度を探索
-                const double v = hypot(v_x, v_y);
+                const double v = sqrt(v_x*v_x + v_y*v_y);
                 const double speed_border = 0.01;
                 if((abs(v - max_vel_) <= speed_border) && (v_r > v_l))
                 {
@@ -130,7 +130,7 @@ bool TargetPathPlanner::is_goal_check(const double x, const double y)
     // local_goalまでの距離を計算
     double dx = local_goal_.point.x - x;
     double dy = local_goal_.point.y - y;
-    double dist_to_goal = hypot(dx, dy);
+    double dist_to_goal = sqrt(dx*dx + dy*dy);
 
     if(dist_to_goal > goal_tolerance_)
         return false;
@@ -143,7 +143,7 @@ bool TargetPathPlanner::is_goal_check(const double x, const double y)
 bool TargetPathPlanner::is_finish_check(const double x, const double y)
 {
     // ロボットからの距離を計算
-    double dist = hypot(x, y);
+    double dist = sqrt(x*x + y*y);
 
     if(dist < finish_dist_)
         return false;
@@ -194,9 +194,12 @@ double TargetPathPlanner::calc_cost_map_eval(const std::vector<State>& traj)
     for(auto& state : traj)
     {
         const int grid_index = xy_to_grid_index(state.x, state.y);
-        double cost = cost_map_.data[grid_index];
 
-        total_cost += cost;
+        if(cost_map_.data[grid_index] > 0)
+            total_cost += cost_map_.data[grid_index];
+        
+        // double cost = cost_map_.data[grid_index];
+        // total_cost += cost;
     }
 
     int traj_size = traj.size();
