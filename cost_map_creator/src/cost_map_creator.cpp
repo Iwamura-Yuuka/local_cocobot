@@ -38,6 +38,11 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     cost_map_.info.height     = int(round(map_size_/map_reso_));
     cost_map_.info.origin.position.x = -map_size_/2.0;
     cost_map_.info.origin.position.y = -map_size_/2.0;
+    cost_map_.info.origin.position.z = 0.0;
+    cost_map_.info.origin.orientation.x = 0.0;
+    cost_map_.info.origin.orientation.y = 0.0;
+    cost_map_.info.origin.orientation.z = 0.0;
+    cost_map_.info.origin.orientation.w = 1.0;
     // data
     cost_map_.data.reserve(cost_map_.info.width * cost_map_.info.height);
 
