@@ -15,6 +15,7 @@ PedestrianStatePredictor::PedestrianStatePredictor():private_nh_("~")
     private_nh_.param("consider_dist_border", consider_dist_border_, {8.0});
     private_nh_.param("predict_dist_border", predict_dist_border_, {3.0});
     private_nh_.param("dt", dt_, {0.1});
+    private_nh_.param("max_predict_time", max_predict_time_, {1.0});
     private_nh_.param("tmp_robot_x", tmp_robot_x_, {0.0});
     private_nh_.param("tmp_robot_y", tmp_robot_y_, {0.0});
 
@@ -175,6 +176,11 @@ void PedestrianStatePredictor::predict_future_ped_states(const pedestrian_msgs::
                 {
                     // 予測時刻を計算
                     time += dt_;
+
+                    if(time > max_predict_time_)  // 予測時間が10秒を超えたら終了
+                    {
+                        break;
+                    }
 
                     // 歩行者の予測位置を計算（odom座標系）
                     const double predict_ped_x = current_person.pose.position.x + (current_person.twist.linear.x * time);

@@ -60,6 +60,7 @@ private:
     double consider_dist_border_;                   // cost_map_createrにデータを渡す歩行者の距離 [m]
     double predict_dist_border_;                    // 歩行者の将来位置を予測する距離 [m]
     double dt_;                                     // 微小時間 [s]
+    double max_predict_time_;                       // 歩行者の将来位置を予測する時間 [s]
 
     // その他の変数
     double tmp_robot_x_;                            // 1ループ前のロボットのx座標格納用

@@ -28,3 +28,4 @@ predict_dist_border: 5.0        # 歩行者の将来位置を予測する距離 
 
 # 予測時間 [s]
 dt: 0.1                         # 微小時間 [s]
+max_predict_time: 10.0           # 最大予測時間 [s]
