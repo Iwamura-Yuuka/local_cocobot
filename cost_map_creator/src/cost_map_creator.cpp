@@ -15,11 +15,13 @@ CostMapCreator::CostMapCreator():private_nh_("~")
     private_nh_.param("ellipse_back_long_min", ellipse_back_long_min_, {0.3});
     private_nh_.param("ellipse_short_max", ellipse_short_max_, {0.5});
     private_nh_.param("ellipse_short_min", ellipse_short_min_, {0.3});
-    private_nh_.param("margin", margin_, {0.25});
+    private_nh_.param("person_radius", person_radius_, {0.25});
+    private_nh_.param("margin", margin_, {0.5});
     private_nh_.param("weight_distance", weight_distance_, {0.5});
     private_nh_.param("weight_speed", weight_speed_, {0.5});
     private_nh_.param("ped_speed_max", ped_speed_max_, {1.5});
     private_nh_.param("count_reso", count_reso_, {0.02});
+    private_nh_.param("gradation_weight", gradation_weight_, {2.0});
     private_nh_.param("min_cost", min_cost_, {10.0});
 
     // subscriber
@@ -413,7 +415,7 @@ double CostMapCreator::calc_distance(const double person_x, const double person_
 }
 
 // 長軸方向の位置から対応する短軸方向の長さを計算
-// a : 長軸の長さ　b : 短軸の長さ
+// a : 長軸の長さ b : 短軸の長さ
 double CostMapCreator::calc_short_side_length(const double x, const double a, const double b)
 {
     const double y = b * sqrt(1 - ((x*x) / (a*a)));
@@ -422,7 +424,7 @@ double CostMapCreator::calc_short_side_length(const double x, const double a, co
 }
 
 // 長軸方向のグリッドを探索
-void CostMapCreator::search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, int& min_index, int& max_index)
+void CostMapCreator::search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, const double ellipse_front_long_length, int& min_index, int& max_index)
 {
     std::vector<Coordinate> long_side;
     std::vector<Coordinate> cost_long_side;
@@ -433,14 +435,14 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
     // 走行コストを割り当てるマスをカウント
     const double long_grid_size = count_grid(long_side, cost_long_side, person_x, person_y);
 
-    double long_grid_size2;  // ゼロ割を防ぐためのもの
-    if(long_grid_size == 0)
-        long_grid_size2 = 1.0;
-    else
-        long_grid_size2 = long_grid_size;
+    // double long_grid_size2;  // ゼロ割を防ぐためのもの
+    // if(long_grid_size == 0)
+    //     long_grid_size2 = 1.0;
+    // else
+    //     long_grid_size2 = long_grid_size;
 
     // 探索した長軸方向（前）のグリッドにコストを割り当てる
-    const double long_cost_reso = (100 - min_cost_) / long_grid_size2;
+    // const double long_cost_reso = (100 - min_cost_) / long_grid_size2;
     double long_cost = 100;
 
     for(const auto& long_side_point : long_side)
@@ -451,7 +453,8 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         if(d > margin_)
         {
             // コストを計算
-            long_cost -= long_cost_reso;
+            // long_cost -= long_cost_reso;
+            long_cost = (100.0 - 1.0) * exp(-1.0 * gradation_weight_ * (d/ellipse_long_length*ellipse_front_long_length - margin_));
 
             // 対応するグリッドがマップ内であれば，コストを割り当て
             if(is_in_map(person_map_, long_side_point.x, long_side_point.y))
@@ -461,6 +464,8 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         // 垂直方向の長さを計算
         const double dist = calc_distance(person_x, person_y, long_side_point.x, long_side_point.y);
         const double short_side_length = calc_short_side_length(dist, ellipse_long_length, ellipse_short_length);
+
+        const double dist2 = sqrt(dist*dist + short_side_length*short_side_length);
 
         // 垂直方向（上）に関して探索
         std::vector<Coordinate> short_side_plus;
@@ -472,24 +477,38 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         // 走行コストを割り当てるマスをカウント
         const double short_plus_grid_size = count_grid(short_side_plus, cost_short_side_plus, person_x, person_y);
 
-        double short_plus_grid_size2;  // ゼロ割を防ぐためのもの
-        if(short_plus_grid_size == 0)
-            short_plus_grid_size2 = 1.0;
-        else
-            short_plus_grid_size2 = short_plus_grid_size;
+        // double short_plus_grid_size2;  // ゼロ割を防ぐためのもの
+        // if(short_plus_grid_size == 0)
+        //     short_plus_grid_size2 = 1.0;
+        // else
+        //     short_plus_grid_size2 = short_plus_grid_size;
 
         // 探索した短軸方向（上）のグリッドにコストを割り当てる
-        const double short_plus_cost_reso = (long_cost - min_cost_) / short_plus_grid_size2;
+        // const double short_plus_cost_reso = (long_cost - min_cost_) / short_plus_grid_size2;
         double short_plus_cost = long_cost;
 
         for(const auto& short_plus_point : cost_short_side_plus)
         {
             // コストを計算
-            short_plus_cost -= short_plus_cost_reso;
+            // short_plus_cost -= short_plus_cost_reso;
 
             // 対応するグリッドがマップ内であれば，コストを割り当て
-            if(is_in_map(person_map_, short_plus_point.x, short_plus_point.y))
-                assign_cost_for_person_cost_map(short_plus_point.x, short_plus_point.y, short_plus_cost, min_index, max_index);
+            // if(is_in_map(person_map_, short_plus_point.x, short_plus_point.y))
+            //     assign_cost_for_person_cost_map(short_plus_point.x, short_plus_point.y, short_plus_cost, min_index, max_index);
+
+            const double d2 = calc_distance(person_x, person_y, short_plus_point.x, short_plus_point.y);
+
+            // 膨張させた範囲外なら走行コストを計算
+            if(d2 > margin_)
+            {
+                // コストを計算
+                // long_cost -= long_cost_reso;
+                short_plus_cost = (100.0 - 1.0) * exp(-1.0 * gradation_weight_ * (d2/dist2*ellipse_front_long_length - margin_));
+
+                // 対応するグリッドがマップ内であれば，コストを割り当て
+                if(is_in_map(person_map_, short_plus_point.x, short_plus_point.y))
+                    assign_cost_for_person_cost_map(short_plus_point.x, short_plus_point.y, short_plus_cost, min_index, max_index);
+            }
         }
 
         // 垂直方向（下）に関して探索
@@ -502,30 +521,45 @@ void CostMapCreator::search_long_side_grid(const double person_x, const double p
         // 走行コストを割り当てるマスをカウント
         const double short_minus_grid_size = count_grid(short_side_minus, cost_short_side_minus, person_x, person_y);
 
-         double short_minus_grid_size2;  // ゼロ割を防ぐためのもの
-        if(short_minus_grid_size == 0)
-            short_minus_grid_size2 = 1.0;
-        else
-            short_minus_grid_size2 = short_minus_grid_size;
+        //  double short_minus_grid_size2;  // ゼロ割を防ぐためのもの
+        // if(short_minus_grid_size == 0)
+        //     short_minus_grid_size2 = 1.0;
+        // else
+        //     short_minus_grid_size2 = short_minus_grid_size;
 
-        // 探索した短軸方向（上）のグリッドにコストを割り当てる
-        const double short_minus_cost_reso = (long_cost - min_cost_) / short_minus_grid_size2;
+        // 探索した短軸方向（下）のグリッドにコストを割り当てる
+        // const double short_minus_cost_reso = (long_cost - min_cost_) / short_minus_grid_size2;
         double short_minus_cost = long_cost;
 
         for(const auto& short_minus_point : cost_short_side_minus)
         {
             // コストを計算
-            short_minus_cost -= short_minus_cost_reso;
+            // short_minus_cost -= short_minus_cost_reso;
 
             // 対応するグリッドがマップ内であれば，コストを割り当て
-            if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
-                assign_cost_for_person_cost_map(short_minus_point.x, short_minus_point.y, short_minus_cost, min_index, max_index);
+            // if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
+            //     assign_cost_for_person_cost_map(short_minus_point.x, short_minus_point.y, short_minus_cost, min_index, max_index);
+
+            const double d3 = calc_distance(person_x, person_y, short_minus_point.x, short_minus_point.y);
+
+            // 膨張させた範囲外なら走行コストを計算
+            if(d3 > margin_)
+            {
+                // コストを計算
+                // long_cost -= long_cost_reso;
+                short_minus_cost = (100.0 - 1.0) * exp(-1.0 * gradation_weight_ * (d3/dist2*ellipse_front_long_length - margin_));
+    
+                // 対応するグリッドがマップ内であれば，コストを割り当て
+                if(is_in_map(person_map_, short_minus_point.x, short_minus_point.y))
+                    assign_cost_for_person_cost_map(short_minus_point.x, short_minus_point.y, short_minus_cost, min_index, max_index);
+            }
+    
         }
     }
 }
 
 // 短軸方向のグリッドを探索
-void CostMapCreator::search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, int& min_index, int& max_index)
+void CostMapCreator::search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, const double ellipse_front_long_length, int& min_index, int& max_index)
 {
     std::vector<Coordinate> short_side;
     std::vector<Coordinate> cost_short_side;
@@ -549,11 +583,25 @@ void CostMapCreator::search_short_side_grid(const double person_x, const double 
     for(const auto& short_side_point : cost_short_side)
     {
         // コストを計算
-        short_cost -= short_cost_reso;
+        // short_cost -= short_cost_reso;
 
         // 対応するグリッドがマップ内であれば，コストを割り当て
-        if(is_in_map(person_map_, short_side_point.x, short_side_point.y))
-            assign_cost_for_person_cost_map(short_side_point.x, short_side_point.y, short_cost, min_index, max_index);
+        // if(is_in_map(person_map_, short_side_point.x, short_side_point.y))
+        //     assign_cost_for_person_cost_map(short_side_point.x, short_side_point.y, short_cost, min_index, max_index);
+
+        const double d = calc_distance(person_x, person_y, short_side_point.x, short_side_point.y);
+
+        // 膨張させた範囲外なら走行コストを計算
+        if(d > margin_)
+        {
+            // コストを計算
+            // long_cost -= long_cost_reso;
+            short_cost = (100.0 - 1.0) * exp(-1.0 * gradation_weight_ * (d/ellipse_short_length*ellipse_front_long_length - margin_));
+    
+            // 対応するグリッドがマップ内であれば，コストを割り当て
+            if(is_in_map(person_map_, short_side_point.x, short_side_point.y))
+                assign_cost_for_person_cost_map(short_side_point.x, short_side_point.y, short_cost, min_index, max_index);
+        }
     }
 }
 
@@ -579,16 +627,16 @@ void CostMapCreator::create_person_cost_map(const pedestrian_msgs::PersonState& 
     if(flag_cost_ == true)  // trueなら走行コストを設定
     {
         // 長軸方向(前)のグリッドを探索
-        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta, ellipse_front_long, ellipse_short, min_index, max_index);
+        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta, ellipse_front_long, ellipse_short, ellipse_front_long, min_index, max_index);
 
         // 長軸方向(後)のグリッドを探索
-        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+M_PI, ellipse_back_long, ellipse_short, min_index, max_index);
+        search_long_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+M_PI, ellipse_back_long, ellipse_short, ellipse_front_long, min_index, max_index);
 
         // 短軸方向（上）のグリッドを探索
-        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta-(M_PI/2), ellipse_short, min_index, max_index);
+        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta-(M_PI/2), ellipse_short, ellipse_front_long, min_index, max_index);
 
         // 短軸方向（下）のグリッドを探索
-        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+(M_PI/2), ellipse_short, min_index, max_index);
+        search_short_side_grid(future_person.pose.position.x, future_person.pose.position.y, theta+(M_PI/2), ellipse_short, ellipse_front_long, min_index, max_index);
     }
 }
 
@@ -602,9 +650,6 @@ void CostMapCreator::expand_obstacle(const double person_x, const double person_
     const double end_x = person_x + margin_;    // x座標
     const double end_y = person_y + margin_;    // y座標
 
-    // 膨張させる範囲（直径）
-    const double diameter = margin_ * 2;
-
     for(double x=start_x; x<=end_x; x+=map_reso_)
     {
         for(double y=start_y; y<=end_y; y+=map_reso_)
@@ -612,10 +657,15 @@ void CostMapCreator::expand_obstacle(const double person_x, const double person_
             const double dist = calc_distance(person_x, person_y, x, y);
 
             // 衝突半径内であれば占有にする
-            if(dist <= margin_)
+            if(dist <= person_radius_)  // 歩行者がいる場所はコスト100にする
             {
                 if(is_in_map(person_map_, x, y))
-                    assign_cost_for_person_cost_map(x, y, 100, min_index, max_index);
+                    assign_cost_for_person_cost_map(x, y, 100.0, min_index, max_index);
+            }
+            else if(dist <= margin_)  // 衝突半径内はコスト99にする
+            {
+                if(is_in_map(person_map_, x, y))
+                    assign_cost_for_person_cost_map(x, y, 99, min_index, max_index);
             }
         }
     }

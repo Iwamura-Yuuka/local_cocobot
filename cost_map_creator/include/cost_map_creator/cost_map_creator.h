@@ -43,8 +43,8 @@ private:
     void assign_cost_for_person_cost_map(const double x, const double y, const double cost, int& min_index, int& max_index);                                                                            // person_map_にコストを割り当てる
     double calc_distance(const double person_x, const double person_y, const double x, const double y);                                                                                                 // 歩行者位置までの距離を計算
     double calc_short_side_length(const double x, const double a, const double b);                                                                                                                      // 長軸方向の位置から対応する短軸方向の長さを計算
-    void search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, int& min_index, int& max_index);  // 長軸方向のグリッドを探索
-    void search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, int& min_index, int& max_index);                                   // 短軸方向のグリッドを探索
+    void search_long_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_long_length, const double ellipse_short_length, const double ellipse_front_long_length, int& min_index, int& max_index);  // 長軸方向のグリッドを探索
+    void search_short_side_grid(const double person_x, const double person_y, const double theta, const double ellipse_short_length, const double ellipse_front_long_length, int& min_index, int& max_index);                                   // 短軸方向のグリッドを探索
     void create_person_cost_map(const pedestrian_msgs::PersonState& current_person, const pedestrian_msgs::PersonState& future_person, int& min_index, int& max_index);                                 // 歩行者1人のみ考慮したコストマップを作成
     void expand_obstacle(const double person_x, const double person_y, int& min_index, int& max_index);                                                                                                 // 歩行者の周りの衝突半径分を占有にする
     void fix_person_cost_map(const int min_index, const int max_index);                                                                                                                                 // person_map_の穴を埋める
@@ -66,11 +66,13 @@ private:
     double ellipse_back_long_min_;   // 走行コストの楕円の長軸（後方）の最小値 [m]
     double ellipse_short_max_;       // 走行コストの楕円の短軸の最大値 [m]
     double ellipse_short_min_;       // 走行コストの楕円の短軸の最小値 [m]
+    double person_radius_;           // 歩行者の半径 [m]
     double margin_;                  // 人間の肩幅の半分 [m]
     double weight_distance_;         // ロボットからの距離に関する項の重み定数
     double weight_speed_;            // 歩行者の速さに関する項の重み定数
     double ped_speed_max_;           // 歩行者の歩く速さの最大値 [m/s]
     double count_reso_;              // コストを割り当てる際に計算する座標の刻み幅 [m]
+    double gradation_weight_;        // コスト減衰の重みづけパラメータ
     double min_cost_;                // 割り当てるコストの最小値
 
     // msgの受け取り判定用
